@@ -1,0 +1,58 @@
+{
+  "name": "dev-toolkit",
+  "displayName": "Dev Toolkit",
+  "description": "Developer utilities: file size display and explorer size decorations",
+  "version": "1.0.0",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.105.0",
+    "typescript": "^5.5.0",
+    "vscode": "^1.1.37"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "devToolkit.showFileSize",
+        "title": "Dev Toolkit: Show File Size"
+      },
+      {
+        "command": "devToolkit.removeConsoleLogs",
+        "title": "Dev Toolkit: Remove Console Logs"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "devToolkit.showFileSize",
+          "when": "!explorerResourceIsFolder"
+        },
+        {
+          "command": "devToolkit.removeConsoleLogs",
+          "when": "!explorerResourceIsFolder"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "devToolkit.showFileSize",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "devToolkit.removeConsoleLogs",
+          "when": "editorTextFocus && !editorReadonly"
+        }
+      ]
+    }
+  }
+}
