@@ -13,13 +13,21 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -w -p ./"
+    "watch": "tsc -w -p ./",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.105.0",
     "typescript": "^5.5.0",
-    "vscode": "^1.1.37"
+    "vscode": "^1.1.37",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "eslint-plugin-unused-imports": "^3.1.0",
+    "prettier": "^3.2.5",
+    "eslint-config-prettier": "^9.1.0"
   },
   "contributes": {
     "commands": [

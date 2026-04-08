@@ -9,4 +9,4 @@ export function activate(context: vscode.ExtensionContext) {
   registerRemoveConsoleLogs(context);
 }
 
-export function deactivate(): void {}
+export function deactivate(): void { }
