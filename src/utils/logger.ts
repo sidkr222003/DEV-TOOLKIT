@@ -15,6 +15,9 @@ export function createLogger(name: string) {
     info(feature: string, message: string) {
       channel.appendLine(`[${getTimestamp()}] ${feature}: ${message}`);
     },
+    warn(feature: string, message: string) {
+      channel.appendLine(`[${getTimestamp()}] ${feature}: WARNING: ${message}`);
+    },
     error(feature: string, message: string) {
       channel.appendLine(`[${getTimestamp()}] ${feature}: ERROR: ${message}`);
     }
