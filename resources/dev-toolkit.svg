@@ -1,4 +1,6 @@
-<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-  <rect x="10" y="10" width="100" height="100" rx="20" fill="#0e639c"/>
-  <path d="M40 45h40v10H40zm0 20h40v10H40zm0 20h25v10H40z" fill="#ffffff"/>
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img">
+  <rect x="10" y="10" width="100" height="100" rx="20" fill="none" />
+  <path d="M36 36 L48 60 L36 84" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M84 36 L72 60 L84 84" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M44 44 L76 44 L76 76 L44 76 Z" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
 </svg>

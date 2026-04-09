@@ -351,14 +351,14 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
 
     /* HEADER */
     .header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 10px; border-bottom: 1px solid var(--border);
-      flex-wrap: wrap; gap: 6px; flex-shrink: 0;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 10px; flex-shrink: 0;
     }
-    .title-group { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+    .title-group { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; flex: 1; }
     .title {
-      font-weight: 600; font-size: 0.82rem;
-      display: flex; align-items: center; gap: 4px;
+      font-weight: 700; font-size: 0.92rem;
+      display: flex; align-items: center; gap: 6px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .title i { font-size: 0.95rem; color: var(--accent); }
@@ -382,14 +382,32 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     button.secondary { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
     button.secondary:hover { background: var(--border); }
-    button.icon { padding: 3px; min-width: 24px; justify-content: center; }
+    button.icon {
+      padding: 3px;
+      min-width: 24px;
+      justify-content: center;
+      border: none;
+      background: transparent;
+    }
+    button.secondary.icon { border: none; }
 
     /* SCROLL CONTENT */
     .content { flex: 1; padding: 8px; overflow-y: auto; overflow-x: hidden; min-height: 0; }
 
     /* STATES */
-    .state { display: none; text-align: center; padding: 20px 10px; }
-    .state.active { display: block; }
+    .state {
+      display: none;
+      width: 100%;
+      min-height: 100%;
+      text-align: center;
+      padding: 20px 10px;
+      box-sizing: border-box;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+    .state.active { display: flex; }
     .state-icon { font-size: 1.8rem; margin-bottom: 8px; color: var(--text-sec); }
     .state-text { color: var(--text-sec); font-size: 0.85rem; }
     .progress { margin: 10px auto; width: 85%; max-width: 340px; }
@@ -422,11 +440,46 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     .tab-pane.active { display: block; }
 
     /* TAGS */
-    .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+    .tag-scroll-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .tag-nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+      flex-shrink: 0;
+      opacity: 0.95;
+    }
+    .tag-nav:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
+    .tag-nav:disabled { opacity: 0.35; cursor: not-allowed; }
+    .tags {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 2px;
+      flex: 1;
+      min-width: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .tags::-webkit-scrollbar { display: none; }
     .tag {
-      background: var(--input-bg); padding: 2px 6px; border-radius: 3px;
+      background: var(--input-bg); padding: 4px 8px; border-radius: 6px;
       font-size: 0.67rem; color: var(--text-sec); border: 1px solid var(--border);
-      display: inline-flex; align-items: center; gap: 3px;
+      display: inline-flex; align-items: center; gap: 4px;
+      flex: 0 0 auto;
     }
 
     /* METRICS GRID - responsive */
@@ -484,8 +537,18 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
 
     /* SUMMARY BOX */
     .box { background: var(--input-bg); border: 1px solid var(--border); border-radius: 4px; padding: 8px; margin-bottom: 6px; }
-    .sum-text { white-space: pre-wrap; line-height: 1.6; font-size: 0.82rem; word-break: break-word; }
-    .sum-text.beginner { font-size: 0.88rem; line-height: 1.7; }
+    .sum-text {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font: inherit;
+      color: inherit;
+      word-break: break-word;
+    }
+    .sum-text.beginner {
+      font: inherit;
+      color: inherit;
+      line-height: 1.7;
+    }
 
     /* DETAILS */
     .det-text {
@@ -591,23 +654,19 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
 
       <!-- CONTENT STATE -->
       <div id="stateContent" class="explanation">
-        <!-- Mode Toggle -->
-        <div class="mode-bar">
-          <div class="mode-label"><i class="codicon codicon-lightbulb"></i> Style</div>
-          <div class="mode-group">
-            <button id="modeStd" class="mode-btn active">Standard</button>
-            <button id="modeBeg" class="mode-btn">Beginner</button>
-          </div>
-        </div>
         <!-- View Tabs -->
         <div class="tab-bar">
           <button id="tabBasic" class="tab-btn active">Basic</button>
-          <button id="tabAnalysis" class="tab-btn">Analysis Result</button>
+          <button id="tabAnalysis" class="tab-btn">Raw Result</button>
         </div>
 
         <div id="basicPane" class="tab-pane active">
           <!-- Pattern Tags -->
-          <div class="tags" id="patternTags"></div>
+          <div class="tag-scroll-wrapper">
+            <button id="tagPrev" class="tag-nav" title="Scroll left" aria-label="Scroll tags left"><i class="codicon codicon-chevron-left"></i></button>
+            <div class="tags" id="patternTags" role="list"></div>
+            <button id="tagNext" class="tag-nav" title="Scroll right" aria-label="Scroll tags right"><i class="codicon codicon-chevron-right"></i></button>
+          </div>
 
           <!-- Metrics Grid -->
           <div class="metrics">
@@ -655,6 +714,14 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
           </div>
 
           <!-- Summary -->
+          <div class="mode-bar">
+            <div class="mode-label"><i class="codicon codicon-lightbulb"></i> Style</div>
+            <div class="mode-group">
+              <button id="modeStd" class="mode-btn active">Standard</button>
+              <button id="modeBeg" class="mode-btn">Beginner</button>
+            </div>
+          </div>
+
           <div class="section">
             <div class="sec-head">
               <div class="sec-title"><i class="codicon codicon-comment-discussion"></i> Summary</div>
@@ -722,7 +789,7 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
       modeStd: $("modeStd"), modeBeg: $("modeBeg"),
       tabBasic: $("tabBasic"), tabAnalysis: $("tabAnalysis"),
       basicPane: $("basicPane"), analysisPane: $("analysisPane"),
-      patternTags: $("patternTags"),
+      patternTags: $("patternTags"), tagPrev: $("tagPrev"), tagNext: $("tagNext"),
       mComp: $("mComp"), mCompDesc: $("mCompDesc"),
       mCyc: $("mCyc"), mNest: $("mNest"), mMaint: $("mMaint"),
       mCog: $("mCog"), mSmells: $("mSmells"),
@@ -765,6 +832,28 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
 
     function esc(t) {
       return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c] || c));
+    }
+
+    function updateTagScrollButtons() {
+      if (!els.patternTags || !els.tagPrev || !els.tagNext) return;
+      const scrollEl = els.patternTags;
+      const canScrollLeft = scrollEl.scrollLeft > 2;
+      const canScrollRight = scrollEl.scrollLeft + scrollEl.clientWidth < scrollEl.scrollWidth - 2;
+      const hasOverflow = scrollEl.scrollWidth > scrollEl.clientWidth + 2;
+      els.tagPrev.disabled = !canScrollLeft;
+      els.tagNext.disabled = !canScrollRight;
+      els.tagPrev.style.visibility = "visible";
+      els.tagNext.style.visibility = "visible";
+      if (!hasOverflow) {
+        els.tagPrev.disabled = true;
+        els.tagNext.disabled = true;
+      }
+    }
+
+    function scrollTags(offset) {
+      if (!els.patternTags) return;
+      els.patternTags.scrollBy({ left: offset, behavior: "smooth" });
+      setTimeout(updateTagScrollButtons, 160);
     }
 
     function getCompDesc(l) {
@@ -826,6 +915,11 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     els.retry.onclick = () => vscode.postMessage({ type: "refreshSelection" });
     els.modeStd.onclick = () => vscode.postMessage({ type: "setMode", mode: "standard" });
     els.modeBeg.onclick = () => vscode.postMessage({ type: "setMode", mode: "beginner" });
+    els.tagPrev.onclick = () => scrollTags(-140);
+    els.tagNext.onclick = () => scrollTags(140);
+    if (els.patternTags) {
+      els.patternTags.onscroll = updateTagScrollButtons;
+    }
     els.tabBasic.onclick = () => setActiveTab("basic");
     els.tabAnalysis.onclick = () => setActiveTab("analysis");
     els.copyIns.onclick = () => vscode.postMessage({ type: "copySection", section: "insights" });
@@ -897,6 +991,7 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
         els.patternTags.innerHTML = d.patterns.slice(0, 10).map(p =>
           '<span class="tag"><i class="codicon ' + getTagIcon(p) + '"></i>' + esc(p) + '</span>'
         ).join("");
+        requestAnimationFrame(updateTagScrollButtons);
 
         // Insights
         els.insights.innerHTML = d.insights.slice(0, 8).map(i => {
