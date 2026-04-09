@@ -593,7 +593,6 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
             <button id="modeBeg" class="mode-btn">Beginner</button>
           </div>
         </div>
-
         <!-- View Tabs -->
         <div class="tab-bar">
           <button id="tabBasic" class="tab-btn active">Basic</button>
