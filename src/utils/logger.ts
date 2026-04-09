@@ -11,15 +11,37 @@ function getTimestamp(): string {
 export function createLogger(name: string) {
   const channel = vscode.window.createOutputChannel(name);
 
+  const formatPayload = (payload?: unknown): string => {
+    if (payload === undefined) return "";
+    if (typeof payload === "string") return payload;
+    if (payload instanceof Error) return payload.stack || payload.message;
+    try {
+      return JSON.stringify(payload);
+    } catch {
+      return String(payload);
+    }
+  };
+
   return {
-    info(feature: string, message: string) {
-      channel.appendLine(`[${getTimestamp()}] ${feature}: ${message}`);
+    info(header: string, payload?: unknown) {
+      channel.appendLine(
+        `[${getTimestamp()}] ${name}: ${header}${payload !== undefined ? " " + formatPayload(payload) : ""}`
+      );
     },
-    warn(feature: string, message: string) {
-      channel.appendLine(`[${getTimestamp()}] ${feature}: WARNING: ${message}`);
+    warn(header: string, payload?: unknown) {
+      channel.appendLine(
+        `[${getTimestamp()}] ${name}: WARNING: ${header}${payload !== undefined ? " " + formatPayload(payload) : ""}`
+      );
     },
-    error(feature: string, message: string) {
-      channel.appendLine(`[${getTimestamp()}] ${feature}: ERROR: ${message}`);
+    error(header: string, payload?: unknown) {
+      channel.appendLine(
+        `[${getTimestamp()}] ${name}: ERROR: ${header}${payload !== undefined ? " " + formatPayload(payload) : ""}`
+      );
+    },
+    debug(header: string, payload?: unknown) {
+      channel.appendLine(
+        `[${getTimestamp()}] ${name}: DEBUG: ${header}${payload !== undefined ? " " + formatPayload(payload) : ""}`
+      );
     }
   };
 }
