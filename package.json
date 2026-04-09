@@ -1,35 +1,80 @@
 {
   "name": "dev-toolkit",
   "displayName": "Dev Toolkit",
-  "description": "Developer utilities: file size display and explorer size decorations",
-  "version": "1.0.0",
+  "description": "Developer utilities: file size display, console log removal, and AI-enhanced code explanation",
+  "version": "1.1.0",
   "publisher": "your-publisher-name",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.93.0"
   },
-  "categories": ["Other"],
-  "activationEvents": ["onStartupFinished"],
+  "categories": [
+    "Other",
+    "Education",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onCommand:devToolkit.showFileSize",
+    "onCommand:devToolkit.removeConsoleLogs",
+    "onCommand:devToolkit.explainSelectedCode",
+    "onView:devToolkit.codeExplainer"
+  ],
   "main": "./dist/extension.js",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -w -p ./"
   },
+  "dependencies": {
+    "typescript": "^5.5.0"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/vscode": "^1.105.0",
-    "typescript": "^5.5.0",
-    "vscode": "^1.1.37"
+    "@types/vscode": "^1.93.0"
   },
   "contributes": {
+    "configuration": {
+      "title": "Dev Toolkit",
+      "properties": {
+        "devToolkit.enableCopilotFallback": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use GitHub Copilot (mini model) to enhance code explanations with AI. 0x cost for extensions. Disable to use static analysis only."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "devToolkit",
+          "title": "Dev Toolkit",
+          "icon": "resources/dev-toolkit.svg"
+        }
+      ]
+    },
+    "views": {
+      "devToolkit": [
+        {
+          "id": "devToolkit.codeExplainer",
+          "type": "webview",
+          "name": "Code Explainer"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "devToolkit.showFileSize",
-        "title": "Dev Toolkit: Show File Size"
+        "title": "Dev Toolkit: Show File Size",
+        "icon": "$(file)"
       },
       {
         "command": "devToolkit.removeConsoleLogs",
-        "title": "Dev Toolkit: Remove Console Logs"
+        "title": "Dev Toolkit: Remove Console Logs",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "devToolkit.explainSelectedCode",
+        "title": "Dev Toolkit: Explain Selected Code",
+        "icon": "$(book)"
       }
     ],
     "menus": {
@@ -51,8 +96,20 @@
         {
           "command": "devToolkit.removeConsoleLogs",
           "when": "editorTextFocus && !editorReadonly"
+        },
+        {
+          "command": "devToolkit.explainSelectedCode",
+          "when": "editorTextFocus && editorHasSelection"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "devToolkit.explainSelectedCode",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorTextFocus && editorHasSelection"
+      }
+    ]
   }
 }

@@ -8,7 +8,7 @@ const cache = new Map<string, { bytes: number; files: number; timestamp: number 
 const CACHE_TTL_MS = 30 * 1000;
 
 export function registerExplorerSizeDecorations(context: vscode.ExtensionContext) {
-  const changeEmitter = new vscode.EventEmitter<vscode.Uri | vscode.Uri[]>();
+  const changeEmitter = new vscode.EventEmitter<vscode.Uri | vscode.Uri[] | undefined>();
 
   const fileDecorationProvider: vscode.FileDecorationProvider = {
     onDidChangeFileDecorations: changeEmitter.event,
@@ -49,7 +49,7 @@ export function registerExplorerSizeDecorations(context: vscode.ExtensionContext
 
   const refreshDecorations = () => {
     cache.clear();
-    changeEmitter.fire();
+    changeEmitter.fire(undefined);
   };
 
   const watcher = vscode.workspace.createFileSystemWatcher("**/*");
