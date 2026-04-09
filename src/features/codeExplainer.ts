@@ -308,13 +308,19 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
   // HTML GENERATOR
   // ─────────────────────────────────────────────────────────────────────────
   private getHtml(): string {
+    const webview = this.view?.webview;
+    const codiconsUri = webview
+      ? webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "node_modules", "@vscode", "codicons", "dist", "codicon.css"))
+      : "";
+    const cspSource = webview?.cspSource || "";
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; script-src 'unsafe-inline';" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codicons/0.0.35/codicon.css" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' ${cspSource}; font-src ${cspSource}; script-src 'unsafe-inline';" />
+  <link rel="stylesheet" href="${codiconsUri}" />
   <style>
     :root {
       --bg: var(--vscode-sideBar-background);

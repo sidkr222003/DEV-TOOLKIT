@@ -25,6 +25,7 @@
     "watch": "tsc -w -p ./"
   },
   "dependencies": {
+    "@vscode/codicons": "^0.0.45",
     "typescript": "^5.5.0"
   },
   "devDependencies": {
