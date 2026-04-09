@@ -386,7 +386,7 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     .state-icon { font-size: 1.8rem; margin-bottom: 8px; color: var(--text-sec); }
     .state-text { color: var(--text-sec); font-size: 0.85rem; }
     .progress { margin: 10px auto; width: 85%; max-width: 340px; }
-    .bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+    .bar { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
     .fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s ease; border-radius: 2px; }
     .step { font-size: 0.68rem; color: var(--text-sec); }
     .load-title { font-size: 1rem; font-weight: 500; margin-bottom: 8px; }
@@ -491,7 +491,7 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     /* SCORE BAR */
     .score-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
     .score-label { font-size: 0.68rem; color: var(--text-sec); width: 72px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .score-bar-wrap { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .score-bar-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
     .score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
     .score-bar-fill.high { background: var(--error); }
     .score-bar-fill.medium { background: var(--warn); }
@@ -759,7 +759,17 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
       "Data Flow":"codicon-symbol-namespace","Control Flow":"codicon-debug-alt",
       "Types":"codicon-symbol-boolean","Halstead":"codicon-graph-line",
       "Code Smells":"codicon-bug","Dead Code":"codicon-trash","Promise Flow":"codicon-sync",
-      "Regex":"codicon-regex","Cognitive":"codicon-combine","Comment Quality":"codicon-comment"
+      "Regex":"codicon-regex","Cognitive":"codicon-combine","Comment Quality":"codicon-comment",
+      "Side Effects":"codicon-flame","Error Handling":"codicon-issue-reopened","Readability":"codicon-eye",
+      "Naming Consistency":"codicon-symbol-keyword","Dependency Audit":"codicon-symbol-package",
+      "Immutability":"codicon-lock","Modern Syntax":"codicon-symbol-constant",
+      "Style Consistency":"codicon-bracket","Security Injection":"codicon-shield",
+      "Concurrency Safety":"codicon-sync","Resource Management":"codicon-server",
+      "Duplicate Patterns":"codicon-copy","Validation":"codicon-checklist",
+      "Logging Patterns":"codicon-debug","Exception Patterns":"codicon-alert",
+      "Test Signals":"codicon-beaker","Configuration Usage":"codicon-gear",
+      "Build Safety":"codicon-package","Lifecycle Hooks":"codicon-flame",
+      "Legacy API Usage":"codicon-history"
     };
 
     function getAlgoIcon(name) {
@@ -941,29 +951,53 @@ async function runStaticAnalysis(
 ): Promise<StaticAnalysisResult> {
   const step = (p: number, s: string) => onProgress(p, s);
 
-  step(4,  "Parsing AST structure...");         const ast  = analyzeAST(code);
-  step(9,  "Building control flow...");          const cfg  = analyzeControlFlow(code);
-  step(14, "Tracking data flow...");             const df   = analyzeDataFlow(code);
-  step(19, "Calculating complexity metrics..."); const cm   = calculateComplexityMetrics(code);
-  step(24, "Computing cognitive complexity...");  const cog  = analyzeCognitiveComplexity(code);
-  step(29, "Recognizing patterns...");           const pat  = detectPatterns(code);
-  step(34, "Labeling semantic roles...");        const sem  = labelSemanticRoles(code);
-  step(38, "Mapping dependencies...");           const dep  = buildDependencyGraph(code);
-  step(43, "Inferring types...");                const typ  = inferTypes(code, languageId);
-  step(48, "Extracting documentation...");       const doc  = extractDocumentation(code);
-  step(53, "Analyzing naming conventions...");   const nam  = analyzeNamingConventions(code);
-  step(57, "Scanning security risks...");        const sec  = scanSecurityHeuristics(code);
-  step(62, "Checking performance hints...");     const perf = generatePerformanceHints(code);
-  step(67, "Detecting framework context...");    const fw   = detectFrameworkContext(code);
-  step(72, "Assessing testability...");          const test = assessTestability(code);
-  step(76, "Computing Halstead metrics...");     const hal  = analyzeHalstead(code);
-  step(80, "Detecting code smells...");          const smells = detectCodeSmells(code);
-  step(84, "Analyzing promise/async flow...");   const prom = analyzePromiseFlow(code);
-  step(88, "Scanning regex usage...");           const rx   = analyzeRegexUsage(code);
-  step(92, "Checking comment quality...");       const cq   = analyzeCommentQuality(code);
+  step(2,  "Parsing AST structure...");              const ast  = analyzeAST(code);
+  step(4,  "Building control flow...");               const cfg  = analyzeControlFlow(code);
+  step(6,  "Tracking data flow...");                  const df   = analyzeDataFlow(code);
+  step(8,  "Calculating complexity metrics...");      const cm   = calculateComplexityMetrics(code);
+  step(10, "Computing cognitive complexity...");       const cog  = analyzeCognitiveComplexity(code);
+  step(12, "Recognizing patterns...");                const pat  = detectPatterns(code);
+  step(14, "Labeling semantic roles...");             const sem  = labelSemanticRoles(code);
+  step(16, "Mapping dependencies...");                const dep  = buildDependencyGraph(code);
+  step(18, "Inferring types...");                     const typ  = inferTypes(code, languageId);
+  step(20, "Extracting documentation...");            const doc  = extractDocumentation(code);
+  step(22, "Analyzing naming conventions...");        const nam  = analyzeNamingConventions(code);
+  step(24, "Scanning security risks...");             const sec  = scanSecurityHeuristics(code);
+  step(26, "Checking performance hints...");          const perf = generatePerformanceHints(code);
+  step(28, "Detecting framework context...");         const fw   = detectFrameworkContext(code);
+  step(30, "Assessing testability...");               const test = assessTestability(code);
+  step(32, "Computing Halstead metrics...");          const hal  = analyzeHalstead(code);
+  step(34, "Detecting code smells...");               const smells = detectCodeSmells(code);
+  step(36, "Analyzing promise/async flow...");        const prom = analyzePromiseFlow(code);
+  step(38, "Scanning regex usage...");                const rx   = analyzeRegexUsage(code);
+  step(40, "Checking comment quality...");            const cq   = analyzeCommentQuality(code);
+  step(42, "Reviewing side-effects...");             const side = analyzeSideEffects(code);
+  step(44, "Validating error handling...");          const errHand = analyzeErrorHandling(code);
+  step(46, "Scoring readability...");                 const read = analyzeReadability(code);
+  step(48, "Checking naming consistency...");         const nameCons = detectNamingConsistency(code);
+  step(50, "Auditing dependencies...");               const depAudit = auditDependencies(code);
+  step(52, "Evaluating immutability...");            const immut = analyzeImmutability(code);
+  step(54, "Checking modern syntax...");             const modern = analyzeModernSyntax(code);
+  step(56, "Reviewing style consistency...");         const style = checkStyleConsistency(code);
+  step(58, "Scanning injection risks...");            const secInj = analyzeSecurityInjection(code);
+  step(60, "Assessing concurrency safety...");       const concurrency = assessConcurrencySafety(code);
+  step(62, "Inspecting resource management...");       const resource = inspectResourceManagement(code);
+  step(64, "Detecting duplicate patterns...");         const duplicates = detectDuplicatePatterns(code);
+  step(66, "Validating data flows...");               const validation = analyzeValidationPatterns(code);
+  step(68, "Reviewing logging patterns...");          const logging = analyzeLoggingPatterns(code);
+  step(70, "Examining exception handling...");        const exceptionPatterns = analyzeExceptionPatterns(code);
+  step(72, "Assessing test signal quality...");       const testSignals = analyzeTestSignals(code);
+  step(74, "Auditing configuration usage...");        const config = auditConfigUsage(code);
+  step(76, "Verifying build safety...");              const build = evaluateBuildSafety(code);
+  step(78, "Inspecting lifecycle hooks...");          const lifecycle = inspectLifecycleHooks(code);
+  step(80, "Detecting legacy API usage...");          const legacy = detectLegacyAPIUsage(code);
 
-  step(96, "Synthesizing results...");
-  return synthesizeStaticSignals([ast, cfg, df, cm, cog, pat, sem, dep, typ, doc, nam, sec, perf, fw, test, hal, smells, prom, rx, cq]);
+  step(82, "Synthesizing results...");
+  return synthesizeStaticSignals([
+    ast, cfg, df, cm, cog, pat, sem, dep, typ, doc, nam, sec, perf, fw, test, hal, smells, prom, rx, cq,
+    side, errHand, read, nameCons, depAudit, immut, modern, style, secInj, concurrency, resource, duplicates,
+    validation, logging, exceptionPatterns, testSignals, config, build, lifecycle, legacy
+  ]);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1561,6 +1595,382 @@ function analyzeCommentQuality(code: string): AnalysisSignal {
   };
 }
 
+// 21. Side Effects Analysis
+function analyzeSideEffects(code: string): AnalysisSignal {
+  const mutationOps = (code.match(/\b(this\.|\w+\s*\.|\w+\s*=\s*\w+\.|Object\.assign\(|\[\s*\w+\s*\])/g) || []).length;
+  const externalWrites = (code.match(/\b(localStorage|sessionStorage|document\.|window\.|process\.|fs\.|net\.|fetch\()/g) || []).length;
+  const pureHints = (code.match(/\bconst\b/g) || []).length;
+  const level = externalWrites + (mutationOps > 5 ? 1 : 0);
+  const insights: Insight[] = [];
+  if (externalWrites > 0) insights.push({ type: "warning", message: "Detected side-effects or external state access; use pure functions where possible.", priority: "medium" });
+  if (mutationOps > 4) insights.push({ type: "suggestion", message: "Multiple mutation points may increase maintenance cost.", priority: "low" });
+
+  return {
+    algorithm: "Side Effects",
+    confidence: 0.68,
+    summary: `Side-effects score: ${Math.max(0, 5 - level)}/5.`,
+    details: [`External writes: ${externalWrites}`, `Mutation indicators: ${mutationOps}`, `Const usage: ${pureHints}`],
+    tags: [externalWrites ? "side-effects" : "pure", mutationOps > 4 ? "mutation-heavy" : ""],
+    insights
+  };
+}
+
+// 22. Error Handling Review
+function analyzeErrorHandling(code: string): AnalysisSignal {
+  const tryBlocks = (code.match(/\btry\b/g) || []).length;
+  const catchBlocks = (code.match(/\bcatch\b/g) || []).length;
+  const throws = (code.match(/\bthrow\b/g) || []).length;
+  const badPatterns = (code.match(/\bcatch\s*\(.*\)\s*\{\s*console\.error\(|\bcatch\s*\(.*\)\s*\{\s*return\s*;/g) || []).length;
+  const insights: Insight[] = [];
+  if (tryBlocks > 0 && catchBlocks === 0) insights.push({ type: "warning", message: "try block found without catch/finally — add error handling.", priority: "high" });
+  if (badPatterns > 0) insights.push({ type: "suggestion", message: "Avoid bare catches or swallow errors silently.", priority: "medium" });
+  if (throws > 2) insights.push({ type: "info", message: `${throws} throw statements found — verify error semantics.`, priority: "low" });
+
+  return {
+    algorithm: "Error Handling",
+    confidence: 0.7,
+    summary: `Error-handling coverage: ${tryBlocks} try / ${catchBlocks} catch / ${throws} throw.`,
+    details: [`try blocks: ${tryBlocks}`, `catch blocks: ${catchBlocks}`, `throw statements: ${throws}`, `Suspicious error handling patterns: ${badPatterns}`],
+    tags: [tryBlocks ? "has-error-handling" : "no-try", badPatterns ? "weak-error-handling" : ""],
+    insights
+  };
+}
+
+// 23. Readability Score
+function analyzeReadability(code: string): AnalysisSignal {
+  const longLines = (code.split("\n").filter(line => line.length > 100).length);
+  const nestedTernaries = (code.match(/\?[^:]+:[^:]+:/g) || []).length;
+  const emptyLines = (code.split("\n").filter(line => line.trim() === "").length);
+  const score = Math.max(0, 10 - Math.min(5, longLines) - Math.min(3, nestedTernaries));
+  const insights: Insight[] = [];
+  if (longLines > 2) insights.push({ type: "suggestion", message: `${longLines} long line(s) over 100 chars — wrap or simplify expressions.`, priority: "low" });
+  if (nestedTernaries > 0) insights.push({ type: "warning", message: "Nested ternaries reduce readability; prefer clearer branching.", priority: "medium" });
+
+  return {
+    algorithm: "Readability",
+    confidence: 0.7,
+    summary: `Readability score: ${score}/10.`,
+    details: [`Long lines: ${longLines}`, `Nested ternaries: ${nestedTernaries}`, `Empty lines: ${emptyLines}`],
+    tags: [longLines > 2 ? "long-lines" : "", nestedTernaries ? "complex-expression" : ""],
+    insights
+  };
+}
+
+// 24. Naming Consistency
+function detectNamingConsistency(code: string): AnalysisSignal {
+  const camel = (code.match(/\b[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*\b/g) || []).length;
+  const snake = (code.match(/\b[a-z]+_[a-z0-9_]+\b/g) || []).length;
+  const pascal = (code.match(/\b[A-Z][a-z0-9]+[A-Z][a-zA-Z0-9]*\b/g) || []).length;
+  const style = camel >= snake ? "camelCase" : "snake_case";
+  const insights: Insight[] = [];
+  if (snake > 0 && camel > 0) insights.push({ type: "suggestion", message: "Mixed naming styles detected — unify naming conventions.", priority: "low" });
+  if (pascal > 0) insights.push({ type: "info", message: `${pascal} PascalCase identifier(s) found — likely classes or React components.`, priority: "low" });
+
+  return {
+    algorithm: "Naming Consistency",
+    confidence: 0.68,
+    summary: `Dominant naming style: ${style}.`,
+    details: [`camelCase: ${camel}`, `snake_case: ${snake}`, `PascalCase: ${pascal}`],
+    tags: [style, snake > 0 && camel > 0 ? "mixed-naming" : ""],
+    insights
+  };
+}
+
+// 25. Dependency Audit
+function auditDependencies(code: string): AnalysisSignal {
+  const imports = code.match(/\bimport\b.+?from\s+['"][^'"]+['"]/g) || [] as string[];
+  const requireCalls = code.match(/\brequire\(['"][^'"]+['"]\)/g) || [] as string[];
+  const external = imports.filter(i => !i.includes("./") && !i.includes("../")).length + requireCalls.filter(r => !r.includes("./") && !r.includes("../")).length;
+  const insights: Insight[] = [];
+  if (external > 3) insights.push({ type: "info", message: `${external} external dependency(ies) used — review package surface area.`, priority: "low" });
+  if (imports.length + requireCalls.length > 8) insights.push({ type: "suggestion", message: "Many imports may indicate a large dependency surface; consider refactor.", priority: "medium" });
+
+  return {
+    algorithm: "Dependency Audit",
+    confidence: 0.72,
+    summary: `${imports.length + requireCalls.length} dependency references, ${external} external modules.`,
+    details: [`Static imports: ${imports.length}`, `Require calls: ${requireCalls.length}`, `External modules: ${external}`],
+    tags: [external > 0 ? "external-deps" : "internal-only", imports.length + requireCalls.length > 8 ? "dependency-heavy" : ""],
+    insights
+  };
+}
+
+// 26. Immutability Check
+function analyzeImmutability(code: string): AnalysisSignal {
+  const letCount = (code.match(/\blet\b/g) || []).length;
+  const constCount = (code.match(/\bconst\b/g) || []).length;
+  const mutateOps = (code.match(/\b(push|pop|splice|shift|unshift|sort|reverse)\b/g) || []).length;
+  const insights: Insight[] = [];
+  if (letCount > constCount) insights.push({ type: "suggestion", message: "More let than const declarations — prefer immutable bindings when possible.", priority: "low" });
+  if (mutateOps > 1) insights.push({ type: "warning", message: "In-place mutations detected — consider immutable data transformations.", priority: "medium" });
+
+  return {
+    algorithm: "Immutability",
+    confidence: 0.7,
+    summary: `Const/let ratio: ${constCount}:${letCount}.`,
+    details: [`const declarations: ${constCount}`, `let declarations: ${letCount}`, `Mutation helpers: ${mutateOps}`],
+    tags: [mutateOps > 1 ? "mutation" : "immutable", constCount >= letCount ? "const-preferred" : ""],
+    insights
+  };
+}
+
+// 27. Modern Syntax Usage
+function analyzeModernSyntax(code: string): AnalysisSignal {
+  const optionalChaining = (code.match(/\?\./g) || []).length;
+  const nullishCoalescing = (code.match(/\?\?/g) || []).length;
+  const arrowFns = (code.match(/=>/g) || []).length;
+  const templateStrings = (code.match(/`[^`]*`/g) || []).length;
+  const insights: Insight[] = [];
+  if (optionalChaining + nullishCoalescing + arrowFns + templateStrings > 3) insights.push({ type: "positive", message: "Modern JavaScript syntax used consistently.", priority: "low" });
+  else insights.push({ type: "suggestion", message: "Consider modern syntax such as optional chaining or nullish coalescing for safer code.", priority: "low" });
+
+  return {
+    algorithm: "Modern Syntax",
+    confidence: 0.68,
+    summary: `${optionalChaining} optional chaining, ${nullishCoalescing} nullish coalescing, ${arrowFns} arrow fn(s).`,
+    details: [`optional chaining: ${optionalChaining}`, `nullish coalescing: ${nullishCoalescing}`, `arrow functions: ${arrowFns}`, `template strings: ${templateStrings}`],
+    tags: [optionalChaining ? "optional-chaining" : "", nullishCoalescing ? "nullish-coalescing" : ""],
+    insights
+  };
+}
+
+// 28. Style Consistency
+function checkStyleConsistency(code: string): AnalysisSignal {
+  const singleQuotes = (code.match(/'/g) || []).length;
+  const doubleQuotes = (code.match(/"/g) || []).length;
+  const semicolons = (code.match(/;/g) || []).length;
+  const trailingSpaces = (code.split("\n").filter(line => /\s+$/.test(line)).length);
+  const insights: Insight[] = [];
+  if (singleQuotes > doubleQuotes && doubleQuotes > 0) insights.push({ type: "suggestion", message: "Mixed quote styles detected — standardize on one style.", priority: "low" });
+  if (trailingSpaces > 0) insights.push({ type: "suggestion", message: `${trailingSpaces} trailing whitespace line(s) found.`, priority: "low" });
+
+  return {
+    algorithm: "Style Consistency",
+    confidence: 0.66,
+    summary: `Quote balance: ${singleQuotes}:${doubleQuotes}, ${trailingSpaces} trailing whitespace line(s).`,
+    details: [`single quotes: ${singleQuotes}`, `double quotes: ${doubleQuotes}`, `semicolons: ${semicolons}`, `trailing whitespace: ${trailingSpaces}`],
+    tags: [trailingSpaces ? "whitespace-issues" : ""],
+    insights
+  };
+}
+
+// 29. Security Injection Scan
+function analyzeSecurityInjection(code: string): AnalysisSignal {
+  const evalUsage = (code.match(/\beval\s*\(/g) || []).length;
+  const innerHTML = (code.match(/\.innerHTML\s*=/g) || []).length;
+  const templateInjection = (code.match(/\$\{[^}]+\}/g) || []).length;
+  const insights: Insight[] = [];
+  if (evalUsage > 0) insights.push({ type: "warning", message: "eval usage detected — this is a common injection risk.", priority: "high" });
+  if (innerHTML > 0) insights.push({ type: "warning", message: "innerHTML assignment detected — prefer safe DOM APIs.", priority: "medium" });
+  if (templateInjection > 5) insights.push({ type: "suggestion", message: "Template interpolation found — validate user input before rendering.", priority: "low" });
+
+  return {
+    algorithm: "Security Injection",
+    confidence: 0.7,
+    summary: `Injection risk checks: eval=${evalUsage}, innerHTML=${innerHTML}.`,
+    details: [`eval calls: ${evalUsage}`, `innerHTML assignments: ${innerHTML}`, `template interpolations: ${templateInjection}`],
+    tags: [evalUsage ? "eval" : "", innerHTML ? "innerHTML" : ""],
+    insights
+  };
+}
+
+// 30. Concurrency Safety
+function assessConcurrencySafety(code: string): AnalysisSignal {
+  const promiseUsage = (code.match(/\bPromise\b/g) || []).length;
+  const asyncUsage = (code.match(/\basync\b/g) || []).length;
+  const lockPatterns = (code.match(/\bAtomics\.|\bSharedArrayBuffer\b/g) || []).length;
+  const insights: Insight[] = [];
+  if (promiseUsage > 2 && asyncUsage === 0) insights.push({ type: "suggestion", message: "Promise-based concurrency without async functions may be harder to follow.", priority: "low" });
+  if (lockPatterns > 0) insights.push({ type: "info", message: "Shared memory or Atomics usage detected — review thread safety.", priority: "medium" });
+
+  return {
+    algorithm: "Concurrency Safety",
+    confidence: 0.66,
+    summary: `Promise usage: ${promiseUsage}, async declarations: ${asyncUsage}.`,
+    details: [`Promise references: ${promiseUsage}`, `async declarations: ${asyncUsage}`, `Atomics/shared buffer: ${lockPatterns}`],
+    tags: [promiseUsage ? "async" : "", lockPatterns ? "shared-memory" : ""],
+    insights
+  };
+}
+
+// 31. Resource Management
+function inspectResourceManagement(code: string): AnalysisSignal {
+  const timers = (code.match(/\b(setTimeout|setInterval|clearTimeout|clearInterval)\b/g) || []).length;
+  const listeners = (code.match(/\baddEventListener\b/g) || []).length;
+  const cleanupSigns = (code.match(/\bremoveEventListener\b|\bclearTimeout\b|\bclearInterval\b/g) || []).length;
+  const insights: Insight[] = [];
+  if (listeners > 0 && cleanupSigns === 0) insights.push({ type: "warning", message: "Event listeners or timers found without obvious cleanup.", priority: "medium" });
+  if (timers > 2) insights.push({ type: "info", message: `Timer usage: ${timers}. Ensure cleanup on component unmount or shutdown.`, priority: "low" });
+
+  return {
+    algorithm: "Resource Management",
+    confidence: 0.67,
+    summary: `Timers: ${timers}, listeners: ${listeners}, cleanup markers: ${cleanupSigns}.`,
+    details: [`timer calls: ${timers}`, `event listeners: ${listeners}`, `cleanup markers: ${cleanupSigns}`],
+    tags: [listeners ? "event-driven" : "", cleanupSigns ? "cleanup-aware" : ""],
+    insights
+  };
+}
+
+// 32. Duplicate Pattern Detection
+function detectDuplicatePatterns(code: string): AnalysisSignal {
+  const chunks = code.match(/\b[a-zA-Z0-9_]{10,}\b/g) || [];
+  const seen = new Map<string, number>();
+  chunks.forEach(item => seen.set(item.toLowerCase(), (seen.get(item.toLowerCase()) || 0) + 1));
+  const repeats = [...seen.values()].filter(count => count > 2).length;
+  const insights: Insight[] = [];
+  if (repeats > 0) insights.push({ type: "suggestion", message: `${repeats} repeated token group(s) detected — extract shared logic.`, priority: "low" });
+
+  return {
+    algorithm: "Duplicate Patterns",
+    confidence: 0.68,
+    summary: repeats > 0 ? `${repeats} duplicated token groups found.` : "No obvious duplicate patterns.",
+    details: [`Repeated token groups: ${repeats}`],
+    tags: repeats > 0 ? ["duplicates"] : ["clean"],
+    insights
+  };
+}
+
+// 33. Validation Analysis
+function analyzeValidationPatterns(code: string): AnalysisSignal {
+  const checks = (code.match(/\b(typeof\s+\w+|===\s*null|!==\s*null|==\s*null|!=\s*null|\bif\s*\(.*\b===\b.*\)|\bif\s*\(.*\b!==\b.*\))/g) || []).length;
+  const inputNames = (code.match(/\b(req\.|event\.|input\.|params\.|body\.)/g) || []).length;
+  const insights: Insight[] = [];
+  if (inputNames && checks === 0) insights.push({ type: "warning", message: "Input data referenced without apparent validation.", priority: "high" });
+  if (checks > 3) insights.push({ type: "positive", message: `${checks} validation checks detected.`, priority: "low" });
+
+  return {
+    algorithm: "Validation",
+    confidence: 0.66,
+    summary: `Validation checks: ${checks}, input references: ${inputNames}.`,
+    details: [`validation patterns: ${checks}`, `input-related tokens: ${inputNames}`],
+    tags: checks > 0 ? ["validation"] : ["unvalidated"],
+    insights
+  };
+}
+
+// 34. Logging Patterns
+function analyzeLoggingPatterns(code: string): AnalysisSignal {
+  const logs = (code.match(/\bconsole\.(log|warn|error|info|debug)\b/g) || []).length;
+  const structured = (code.match(/console\.log\(.*\{.*\}.*\)/g) || []).length;
+  const insights: Insight[] = [];
+  if (logs > 5) insights.push({ type: "info", message: `${logs} console logging calls found — ensure production noise is controlled.`, priority: "low" });
+  if (structured > 0) insights.push({ type: "positive", message: `Structured logging detected (${structured}).`, priority: "low" });
+
+  return {
+    algorithm: "Logging Patterns",
+    confidence: 0.65,
+    summary: `${logs} logging call(s), ${structured} structured log(s).`,
+    details: [`logging calls: ${logs}`, `structured logs: ${structured}`],
+    tags: logs > 0 ? ["logging"] : ["clean-logs"],
+    insights
+  };
+}
+
+// 35. Exception Pattern Review
+function analyzeExceptionPatterns(code: string): AnalysisSignal {
+  const catchAll = (code.match(/catch\s*\(\s*\w+\s*\)\s*\{\s*(return|console|\/\*)/g) || []).length;
+  const throwCustom = (code.match(/throw\s+new\s+\w+/g) || []).length;
+  const insights: Insight[] = [];
+  if (catchAll > 0) insights.push({ type: "suggestion", message: "General catch blocks may hide errors; handle specific conditions when possible.", priority: "medium" });
+  if (throwCustom > 2) insights.push({ type: "info", message: `${throwCustom} custom exceptions thrown.`, priority: "low" });
+
+  return {
+    algorithm: "Exception Patterns",
+    confidence: 0.67,
+    summary: `Catch-all blocks: ${catchAll}, custom throws: ${throwCustom}.`,
+    details: [`catch-all patterns: ${catchAll}`, `custom throw statements: ${throwCustom}`],
+    tags: catchAll ? ["catch-all"] : ["specific-errors"],
+    insights
+  };
+}
+
+// 36. Test Signal Detection
+function analyzeTestSignals(code: string): AnalysisSignal {
+  const testKeywords = (code.match(/\bdescribe\b|\bit\b|\btest\b|\bexpect\b/g) || []).length;
+  const mockUsage = (code.match(/\bjest\.mock\b|\bSinon\b|\bspyOn\b/g) || []).length;
+  const insights: Insight[] = [];
+  if (testKeywords > 0) insights.push({ type: "positive", message: `Test-related code detected (${testKeywords} markers).`, priority: "low" });
+  if (mockUsage > 0) insights.push({ type: "info", message: `${mockUsage} mocking indicator(s).`, priority: "low" });
+
+  return {
+    algorithm: "Test Signals",
+    confidence: 0.63,
+    summary: `Test markers: ${testKeywords}, mock usage: ${mockUsage}.`,
+    details: [`test markers: ${testKeywords}`, `mock/spying hints: ${mockUsage}`],
+    tags: testKeywords ? ["tests-present"] : ["no-tests"],
+    insights
+  };
+}
+
+// 37. Configuration Usage
+function auditConfigUsage(code: string): AnalysisSignal {
+  const envRefs = (code.match(/\bprocess\.env\b|\bimport\.meta\.env\b|\bDeno\.env\b/g) || []).length;
+  const hardcoded = (code.match(/\b(https?:\/\/|PASSWORD|SECRET|TOKEN)\b/g) || []).length;
+  const insights: Insight[] = [];
+  if (hardcoded > 0) insights.push({ type: "warning", message: "Hard-coded configuration or secrets detected.", priority: "high" });
+  if (envRefs > 0) insights.push({ type: "positive", message: `${envRefs} environment configuration reference(s) found.`, priority: "low" });
+
+  return {
+    algorithm: "Configuration Usage",
+    confidence: 0.69,
+    summary: `Env references: ${envRefs}, hard-coded hints: ${hardcoded}.`,
+    details: [`env references: ${envRefs}`, `hard-coded value hints: ${hardcoded}`],
+    tags: envRefs ? ["config-driven"] : ["static-config"],
+    insights
+  };
+}
+
+// 38. Build Safety Review
+function evaluateBuildSafety(code: string): AnalysisSignal {
+  const dynamicImports = (code.match(/\bimport\s*\(/g) || []).length;
+  const moduleExports = (code.match(/\bmodule\.exports\b|\bexport\s+(default\s+)?\w+/g) || []).length;
+  const insights: Insight[] = [];
+  if (dynamicImports > 0) insights.push({ type: "info", message: "Dynamic imports detected — ensure build tools handle code splitting.", priority: "low" });
+  if (moduleExports === 0) insights.push({ type: "suggestion", message: "No module exports detected; confirm the snippet is not intended as reusable code.", priority: "low" });
+
+  return {
+    algorithm: "Build Safety",
+    confidence: 0.66,
+    summary: `Dynamic imports: ${dynamicImports}, module exports: ${moduleExports}.`,
+    details: [`dynamic import calls: ${dynamicImports}`, `exports found: ${moduleExports}`],
+    tags: dynamicImports ? ["dynamic-imports"] : ["static-imports"],
+    insights
+  };
+}
+
+// 39. Lifecycle Hook Review
+function inspectLifecycleHooks(code: string): AnalysisSignal {
+  const reactHooks = (code.match(/\buseEffect\b|\buseLayoutEffect\b|\bcomponentDidMount\b|\bcomponentWillUnmount\b/g) || []).length;
+  const insights: Insight[] = [];
+  if (reactHooks > 0) insights.push({ type: "info", message: `${reactHooks} lifecycle hook(s) detected — review cleanup and dependency arrays.`, priority: "low" });
+
+  return {
+    algorithm: "Lifecycle Hooks",
+    confidence: 0.64,
+    summary: `${reactHooks} lifecycle hook indicator(s) found.`,
+    details: [`hook-like patterns: ${reactHooks}`],
+    tags: reactHooks ? ["lifecycle"] : ["no-lifecycle"],
+    insights
+  };
+}
+
+// 40. Legacy API Usage
+function detectLegacyAPIUsage(code: string): AnalysisSignal {
+  const legacy = (code.match(/\bvar\b|\barguments\b|\.bind\(|\bXMLHttpRequest\b|\bnew\s+Buffer\b/g) || []).length;
+  const insights: Insight[] = [];
+  if (legacy > 0) insights.push({ type: "suggestion", message: `${legacy} legacy API reference(s) detected — consider modern alternatives.`, priority: "low" });
+
+  return {
+    algorithm: "Legacy API Usage",
+    confidence: legacy > 0 ? 0.7 : 0.55,
+    summary: legacy > 0 ? `${legacy} legacy API usage(s) found.` : "No obvious legacy API patterns.",
+    details: [`legacy API indicators: ${legacy}`],
+    tags: legacy > 0 ? ["legacy"] : ["modern"],
+    insights
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SYNTHESIS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1570,9 +1980,18 @@ function synthesizeStaticSignals(signals: AnalysisSignal[]): StaticAnalysisResul
     .filter(s => s.confidence >= 0.5)
     .sort((a, b) => b.confidence - a.confidence);
 
+  const distinctSignals: AnalysisSignal[] = [];
+  const seenAlgorithms = new Set<string>();
+  for (const signal of weighted) {
+    if (!seenAlgorithms.has(signal.algorithm)) {
+      seenAlgorithms.add(signal.algorithm);
+      distinctSignals.push(signal);
+    }
+  }
+
   // Merge tags
   const seenP = new Set<string>();
-  const patterns = weighted
+  const patterns = distinctSignals
     .flatMap(s => s.tags)
     .filter(t => t && !["metrics", "data-flow", "control-flow", "no-regex", ""].includes(t))
     .map(t => t.charAt(0).toUpperCase() + t.slice(1).replace(/-/g, " "))
@@ -1581,7 +2000,7 @@ function synthesizeStaticSignals(signals: AnalysisSignal[]): StaticAnalysisResul
 
   // Merge insights (deduplicate, sort by priority)
   const seenI = new Set<string>();
-  const insights = weighted
+  const insights = distinctSignals
     .flatMap(s => s.insights)
     .sort((a, b) => ({ high: 3, medium: 2, low: 1 }[b.priority] - { high: 3, medium: 2, low: 1 }[a.priority]))
     .filter(i => { const k = i.message.toLowerCase().slice(0, 40); if (seenI.has(k)) return false; seenI.add(k); return true; })
@@ -1607,7 +2026,7 @@ function synthesizeStaticSignals(signals: AnalysisSignal[]): StaticAnalysisResul
     codeSmells: (smellsSig?.metrics as any)?.codeSmells ?? 0
   };
 
-  const topSignals = weighted.slice(0, 4).map(s => s.summary.replace(/\.$/, "")).join(". ");
+  const topSignals = distinctSignals.slice(0, 4).map(s => s.summary.replace(/\.$/, "")).join(". ");
   const standardSummary = `${topSignals}. Patterns: ${patterns.slice(0, 4).join(", ")}. Complexity: ${metrics.complexity} (cyclomatic: ${metrics.cyclomatic}, cognitive: ${metrics.cognitiveComplexity}).`;
   const beginnerSummary = generateBeginnerFallback(standardSummary, patterns, insights, metrics);
 
@@ -1623,17 +2042,17 @@ function synthesizeStaticSignals(signals: AnalysisSignal[]): StaticAnalysisResul
     `- Code Smells: ${metrics.codeSmells}`,
     ``,
     `## Analysis Details`,
-    ...weighted.slice(0, 6).flatMap(s =>
+    ...distinctSignals.slice(0, 6).flatMap(s =>
       s.details.length ? [`### ${s.algorithm}`, ...s.details.slice(0, 4).map(d => `- ${d}`)] : []
     ),
     ...(insights.length ? [``, `## Key Insights`, ...insights.map(i => `- [${i.priority.toUpperCase()}] ${i.message}`)] : [])
   ].join("\n");
 
-  return { metrics, patterns, insights, signals: weighted, standardSummary, beginnerSummary, detailsText };
+  return { metrics, patterns, insights, signals: distinctSignals, standardSummary, beginnerSummary, detailsText };
 }
 
 function getTopContributors(signals: AnalysisSignal[]): string[] {
-  return signals.slice(0, 5).map(s => s.algorithm);
+  return Array.from(new Set(signals.slice(0, 5).map(s => s.algorithm)));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1796,7 +2215,7 @@ async function runMultiAlgorithmAnalysis(
     throw new Error("No code provided for analysis.");
   }
 
-  // STEP 1: Static analysis (20 algorithms)
+  // STEP 1: Static analysis (40 algorithms)
   const staticResult = await runStaticAnalysis(code, languageId, step);
 
   // STEP 2: Optional AI enhancement
@@ -1837,7 +2256,7 @@ async function runMultiAlgorithmAnalysis(
     insights: staticResult.insights,
     mode: "standard",
     language: languageId,
-    algorithmsUsed: 20 + (aiResult ? 1 : 0),
+    algorithmsUsed: staticResult.signals.length + (aiResult ? 1 : 0),
     topContributors: getTopContributors(staticResult.signals),
     aiEnhanced: !!aiResult,
     aiStatus: aiStatus + (aiModelName ? ` (${aiModelName})` : ""),
