@@ -70,6 +70,7 @@ type Explanation = {
   language: string;
   algorithmsUsed: number;
   topContributors: string[];
+  signals: AnalysisSignal[];
   aiEnhanced: boolean;
   aiStatus?: string;
   rawMarkdown: string;
@@ -407,6 +408,13 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     .mode-btn.active { background: var(--accent); color: var(--accent-fg); font-weight: 500; }
     .mode-btn:hover:not(.active) { background: var(--border); color: var(--text); }
 
+    .tab-bar { display: flex; gap: 4px; margin-bottom: 10px; }
+    .tab-btn { flex: 1; padding: 4px 8px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--text); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .tab-btn.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+    .tab-btn:hover:not(.active) { background: var(--border); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
     /* TAGS */
     .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
     .tag {
@@ -444,6 +452,10 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
       font-size: 0.72rem; background: var(--input-bg); border-left: 3px solid transparent;
       transition: opacity 0.15s;
     }
+    .algorithm-results { display: grid; gap: 6px; margin-bottom: 10px; }
+    .algo-item { border: 1px solid var(--border); border-radius: 4px; padding: 8px; background: var(--input-bg); }
+    .algo-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; color: var(--accent); }
+    .algo-summary { font-size: 0.72rem; color: var(--text-sec); line-height: 1.4; }
     .insight:hover { opacity: 0.9; }
     .insight.positive { border-left-color: var(--success); }
     .insight.warning { border-left-color: var(--warn); }
@@ -582,93 +594,111 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
           </div>
         </div>
 
-        <!-- Pattern Tags -->
-        <div class="tags" id="patternTags"></div>
-
-        <!-- Metrics Grid -->
-        <div class="metrics">
-          <div class="card">
-            <div class="card-head"><i class="codicon codicon-graph"></i> Complexity</div>
-            <div id="mComp" class="card-val">-</div>
-            <div id="mCompDesc" class="card-desc">-</div>
-          </div>
-          <div class="card">
-            <div class="card-head"><i class="codicon codicon-git-branch"></i> Cyclomatic</div>
-            <div id="mCyc" class="card-val">-</div>
-            <div class="card-desc">paths</div>
-          </div>
-          <div class="card">
-            <div class="card-head"><i class="codicon codicon-indent"></i> Nesting</div>
-            <div id="mNest" class="card-val">-</div>
-            <div class="card-desc">depth</div>
-          </div>
-          <div class="card">
-            <div class="card-head"><i class="codicon codicon-checklist"></i> Maintain</div>
-            <div id="mMaint" class="card-val">-</div>
-            <div class="card-desc">/100</div>
-          </div>
-          <div class="card">
-            <div class="card-head"><i class="codicon codicon-combine"></i> Cognitive</div>
-            <div id="mCog" class="card-val">-</div>
-            <div class="card-desc">score</div>
-          </div>
-          <div class="card">
-            <div class="card-head"><i class="codicon codicon-symbol-misc"></i> Smells</div>
-            <div id="mSmells" class="card-val">-</div>
-            <div class="card-desc">issues</div>
-          </div>
+        <!-- View Tabs -->
+        <div class="tab-bar">
+          <button id="tabBasic" class="tab-btn active">Basic</button>
+          <button id="tabAnalysis" class="tab-btn">Analysis Result</button>
         </div>
 
-        <!-- Score Bars -->
-        <div class="section">
-          <div class="sec-head">
-            <div class="sec-title"><i class="codicon codicon-pulse"></i> Quality Scores</div>
-          </div>
-          <div id="scoreBars"></div>
-        </div>
+        <div id="basicPane" class="tab-pane active">
+          <!-- Pattern Tags -->
+          <div class="tags" id="patternTags"></div>
 
-        <!-- Insights -->
-        <div class="section">
-          <div class="sec-head">
-            <div class="sec-title"><i class="codicon codicon-lightbulb"></i> Key Insights</div>
-            <div class="sec-actions">
-              <button class="secondary icon" id="copyIns" title="Copy insights"><i class="codicon codicon-copy"></i></button>
+          <!-- Metrics Grid -->
+          <div class="metrics">
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-graph"></i> Complexity</div>
+              <div id="mComp" class="card-val">-</div>
+              <div id="mCompDesc" class="card-desc">-</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-git-branch"></i> Cyclomatic</div>
+              <div id="mCyc" class="card-val">-</div>
+              <div class="card-desc">paths</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-indent"></i> Nesting</div>
+              <div id="mNest" class="card-val">-</div>
+              <div class="card-desc">depth</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-checklist"></i> Maintain</div>
+              <div id="mMaint" class="card-val">-</div>
+              <div class="card-desc">/100</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-combine"></i> Cognitive</div>
+              <div id="mCog" class="card-val">-</div>
+              <div class="card-desc">score</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-symbol-misc"></i> Smells</div>
+              <div id="mSmells" class="card-val">-</div>
+              <div class="card-desc">issues</div>
             </div>
           </div>
-          <div class="insights" id="insightsList"></div>
-        </div>
 
-        <!-- Summary -->
-        <div class="section">
-          <div class="sec-head">
-            <div class="sec-title"><i class="codicon codicon-comment-discussion"></i> Summary</div>
-            <div class="sec-actions">
-              <button class="secondary" id="copySum"><i class="codicon codicon-copy"></i> Copy</button>
+          <!-- Score Bars -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-pulse"></i> Quality Scores</div>
             </div>
+            <div id="scoreBars"></div>
           </div>
-          <div class="box"><div id="sumText" class="sum-text"></div></div>
-        </div>
 
-        <!-- Technical Details (collapsible) -->
-        <div class="section">
-          <div class="sec-head">
-            <div class="sec-title"><i class="codicon codicon-list-tree"></i> Technical Details</div>
-            <div class="sec-actions">
-              <button class="secondary" id="expandDetBtn"><i class="codicon codicon-unfold"></i> Expand</button>
-              <button class="secondary icon" id="copyDet" title="Copy details"><i class="codicon codicon-copy"></i></button>
+          <!-- Insights -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-lightbulb"></i> Key Insights</div>
+              <div class="sec-actions">
+                <button class="secondary icon" id="copyIns" title="Copy insights"><i class="codicon codicon-copy"></i></button>
+              </div>
             </div>
+            <div class="insights" id="insightsList"></div>
           </div>
-          <div class="box"><div id="detText" class="det-text"></div></div>
+
+          <!-- Summary -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-comment-discussion"></i> Summary</div>
+              <div class="sec-actions">
+                <button class="secondary" id="copySum"><i class="codicon codicon-copy"></i> Copy</button>
+              </div>
+            </div>
+            <div class="box"><div id="sumText" class="sum-text"></div></div>
+          </div>
         </div>
 
-        <!-- Highlights / Contributors -->
-        <div class="section">
-          <div class="sec-head">
-            <div class="sec-title"><i class="codicon codicon-star"></i> Analysis Pipeline</div>
+        <div id="analysisPane" class="tab-pane">
+          <!-- Technical Details (collapsible) -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-list-tree"></i> Technical Details</div>
+              <div class="sec-actions">
+                <button class="secondary" id="expandDetBtn"><i class="codicon codicon-unfold"></i> Expand</button>
+                <button class="secondary icon" id="copyDet" title="Copy details"><i class="codicon codicon-copy"></i></button>
+              </div>
+            </div>
+            <div class="box"><div id="detText" class="det-text"></div></div>
           </div>
-          <div class="box">
-            <div id="contributorsList" class="contributors"></div>
-            <div id="aiNote" class="ai-note"></div>
+
+          <!-- Analyzer Results -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-list-selection"></i> Analyzer Results</div>
+            </div>
+            <div id="algorithmResults" class="algorithm-results"></div>
+          </div>
+
+          <!-- Highlights / Contributors -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-star"></i> Analysis Pipeline</div>
+            </div>
+            <div class="box">
+              <div id="contributorsList" class="contributors"></div>
+              <div id="aiNote" class="ai-note"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -693,6 +723,8 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
       errMsg: $("errMsg"),
       aiBadge: $("aiBadge"), algoBadge: $("algoBadge"), langBadge: $("langBadge"),
       modeStd: $("modeStd"), modeBeg: $("modeBeg"),
+      tabBasic: $("tabBasic"), tabAnalysis: $("tabAnalysis"),
+      basicPane: $("basicPane"), analysisPane: $("analysisPane"),
       patternTags: $("patternTags"),
       mComp: $("mComp"), mCompDesc: $("mCompDesc"),
       mCyc: $("mCyc"), mNest: $("mNest"), mMaint: $("mMaint"),
@@ -701,7 +733,7 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
       insights: $("insightsList"),
       sumText: $("sumText"),
       detText: $("detText"),
-      contributors: $("contributorsList"), aiNote: $("aiNote"),
+      contributors: $("contributorsList"), algorithmResults: $("algorithmResults"), aiNote: $("aiNote"),
       copyIns: $("copyIns"), copySum: $("copySum"), copyDet: $("copyDet"),
       expandDetBtn: $("expandDetBtn"),
       lang: $("langLabel"), status: $("statusLabel"),
@@ -718,6 +750,16 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
           if (s === "stateContent") el.style.display = s === id ? "block" : "none";
         }
       });
+    }
+
+    let currentTab = "basic";
+
+    function setActiveTab(tab) {
+      currentTab = tab;
+      els.tabBasic.classList.toggle("active", tab === "basic");
+      els.tabAnalysis.classList.toggle("active", tab === "analysis");
+      els.basicPane.classList.toggle("active", tab === "basic");
+      els.analysisPane.classList.toggle("active", tab === "analysis");
     }
 
     function updateModeButtons(mode) {
@@ -809,6 +851,8 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     els.retry.onclick = () => vscode.postMessage({ type: "refreshSelection" });
     els.modeStd.onclick = () => vscode.postMessage({ type: "setMode", mode: "standard" });
     els.modeBeg.onclick = () => vscode.postMessage({ type: "setMode", mode: "beginner" });
+    els.tabBasic.onclick = () => setActiveTab("basic");
+    els.tabAnalysis.onclick = () => setActiveTab("analysis");
     els.copyIns.onclick = () => vscode.postMessage({ type: "copySection", section: "insights" });
     els.copySum.onclick = () => vscode.postMessage({ type: "copySection", section: "summary" });
     els.copyDet.onclick = () => vscode.postMessage({ type: "copySection", section: "details" });
@@ -910,11 +954,19 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
         els.sumText.textContent = summaryText || "(No summary available)";
         els.sumText.className = "sum-text" + (d.mode === "beginner" ? " beginner" : "");
 
+        setActiveTab(currentTab);
+
         // Details
         els.detText.textContent = d.details || "(No details available)";
         detExpanded = false;
         els.detText.classList.remove("expanded");
         els.expandDetBtn.innerHTML = '<i class="codicon codicon-unfold"></i> Expand';
+
+        // Algorithm result summaries
+        els.algorithmResults.innerHTML = d.signals.map(s =>
+          '<div class="algo-item"><div class="algo-title"><i class="codicon ' + getAlgoIcon(s.algorithm) + '"></i>' + esc(s.algorithm) + '</div>' +
+          '<div class="algo-summary">' + esc(s.summary) + '</div></div>'
+        ).join("");
 
         // Contributors
         els.contributors.innerHTML = d.topContributors.map(c =>
@@ -969,7 +1021,7 @@ async function runStaticAnalysis(
   step(32, "Computing Halstead metrics...");          const hal  = analyzeHalstead(code);
   step(34, "Detecting code smells...");               const smells = detectCodeSmells(code);
   step(36, "Analyzing promise/async flow...");        const prom = analyzePromiseFlow(code);
-  step(38, "Scanning regex usage...");                const rx   = analyzeRegexUsage(code);
+  step(38, "Scanning regex usage.f..");                const rx   = analyzeRegexUsage(code);
   step(40, "Checking comment quality...");            const cq   = analyzeCommentQuality(code);
   step(42, "Reviewing side-effects...");             const side = analyzeSideEffects(code);
   step(44, "Validating error handling...");          const errHand = analyzeErrorHandling(code);
@@ -1127,19 +1179,33 @@ function analyzeDataFlow(code: string): AnalysisSignal {
 // 4. Complexity Metrics
 function calculateComplexityMetrics(code: string): AnalysisSignal & { metrics: CombinedMetrics } {
   const lines = code.split("\n").filter(l => l.trim() && !/^\s*\/\//.test(l) && !/^\s*\/\*/.test(l)).length;
-  const branches = (code.match(/\b(if|else|switch|case|catch|\?|&&|\|\|)\b/g) || []).length;
-  const allLines = code.split("\n");
-  const maxNesting = Math.max(...allLines.map(l => Math.floor((l.match(/^\s*/)?.[0].length || 0) / 2)), 0);
+  const branches = (code.match(/\b(if|else if|else|for|while|do|switch|case|catch|\?|&&|\|\|)\b/g) || []).length;
   const cyclo = 1 + branches;
+
+  let depth = 0;
+  let maxDepth = 0;
+  const cleaned = code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  for (const char of cleaned) {
+    if (char === "{") {
+      depth += 1;
+      maxDepth = Math.max(maxDepth, depth);
+    } else if (char === "}") {
+      depth = Math.max(0, depth - 1);
+    }
+  }
+
   const safeLines = Math.max(lines, 1);
-  const safeCyclo = Math.max(cyclo, 1);
-  const mi = Math.max(0, Math.min(100, (171 - 5.2 * Math.log(safeCyclo) - 0.23 * maxNesting - 16.2 * Math.log(safeLines)) / 1.71));
-  const comp: "low" | "medium" | "high" = cyclo > 10 || maxNesting > 4 ? "high" : cyclo > 5 || maxNesting > 2 ? "medium" : "low";
+  const mi = Math.max(0, Math.min(100, (171 - 5.2 * Math.log(Math.max(cyclo, 1)) - 0.23 * maxDepth - 16.2 * Math.log(safeLines)) / 1.71));
+  const comp: "low" | "medium" | "high" = cyclo <= 7 && maxDepth <= 3 && lines <= 40
+    ? "low"
+    : cyclo <= 14 && maxDepth <= 5
+      ? "medium"
+      : "high";
 
   const metrics: Partial<CombinedMetrics> = {
     complexity: comp,
     cyclomatic: cyclo,
-    nestingDepth: maxNesting,
+    nestingDepth: maxDepth,
     linesOfCode: lines,
     maintainabilityIndex: Math.round(mi)
   };
@@ -1147,8 +1213,8 @@ function calculateComplexityMetrics(code: string): AnalysisSignal & { metrics: C
   return {
     algorithm: "Complexity",
     confidence: 0.95,
-    summary: `${comp} complexity (cyclomatic: ${cyclo}, nesting: ${maxNesting}).`,
-    details: [`Lines of code: ${lines}`, `Cyclomatic complexity: ${cyclo}`, `Max nesting depth: ${maxNesting}`, `Maintainability index: ${Math.round(mi)}/100`],
+    summary: `${comp} complexity (cyclomatic: ${cyclo}, nesting: ${maxDepth}).`,
+    details: [`Lines of code: ${lines}`, `Cyclomatic complexity: ${cyclo}`, `Max nesting depth: ${maxDepth}`, `Maintainability index: ${Math.round(mi)}/100`],
     tags: ["metrics", "complexity", comp],
     insights: comp === "high"
       ? [{ type: "warning", message: "Consider refactoring into smaller, focused functions.", priority: "high", learnMore: "https://refactoring.guru/refactoring" }]
@@ -2042,7 +2108,7 @@ function synthesizeStaticSignals(signals: AnalysisSignal[]): StaticAnalysisResul
     `- Code Smells: ${metrics.codeSmells}`,
     ``,
     `## Analysis Details`,
-    ...distinctSignals.slice(0, 6).flatMap(s =>
+    ...distinctSignals.flatMap(s =>
       s.details.length ? [`### ${s.algorithm}`, ...s.details.slice(0, 4).map(d => `- ${d}`)] : []
     ),
     ...(insights.length ? [``, `## Key Insights`, ...insights.map(i => `- [${i.priority.toUpperCase()}] ${i.message}`)] : [])
@@ -2052,7 +2118,7 @@ function synthesizeStaticSignals(signals: AnalysisSignal[]): StaticAnalysisResul
 }
 
 function getTopContributors(signals: AnalysisSignal[]): string[] {
-  return Array.from(new Set(signals.slice(0, 5).map(s => s.algorithm)));
+  return Array.from(new Set(signals.map(s => s.algorithm)));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2258,6 +2324,7 @@ async function runMultiAlgorithmAnalysis(
     language: languageId,
     algorithmsUsed: staticResult.signals.length + (aiResult ? 1 : 0),
     topContributors: getTopContributors(staticResult.signals),
+    signals: staticResult.signals,
     aiEnhanced: !!aiResult,
     aiStatus: aiStatus + (aiModelName ? ` (${aiModelName})` : ""),
     rawMarkdown
