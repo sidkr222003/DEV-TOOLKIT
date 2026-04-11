@@ -1,5 +1,5 @@
 import * as vscode from "vscode"
-import { createLogger } from "../../utils/logger"
+import { createLogger } from "../../../utils/logger"
 import { runStaticAnalysis, getTopContributors } from "./codeAlgorithms"
 import { Explanation, StaticAnalysisResult, AIEnhancement, CombinedMetrics, Insight } from "./codeExplainerTypes"
 
@@ -237,7 +237,7 @@ function generateMarkdownExport(
     ``,
     `---`,
     ``,
-    `## 📊 Metrics`,
+    `## Metrics`,
     ``,
     `| Metric | Value | Rating |`,
     `|--------|-------|--------|`,

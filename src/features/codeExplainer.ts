@@ -1,1 +1,1 @@
-export { registerCodeExplainer } from "./codeExplainer/codeExplainerView";
+export { registerCodeExplainer } from "./codeExplainer/utils/codeExplainerView";
