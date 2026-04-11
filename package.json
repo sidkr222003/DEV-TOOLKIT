@@ -1,7 +1,7 @@
 {
   "name": "dev-toolkit",
   "displayName": "Dev Toolkit",
-  "description": "Developer utilities: file size display, console log removal, and AI-enhanced code explanation",
+  "description": "Developer utilities: file size display, console log removal, AI-enhanced code explanation, and reference tracking",
   "version": "1.1.0",
   "publisher": "your-publisher-name",
   "engines": {
@@ -16,6 +16,12 @@
     "onCommand:devToolkit.showFileSize",
     "onCommand:devToolkit.removeConsoleLogs",
     "onCommand:devToolkit.explainSelectedCode",
+    "onCommand:devToolkit.showFunctionReferences",
+    "onCommand:devToolkit.refreshReferences",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
     "onView:devToolkit.codeExplainer"
   ],
   "main": "./dist/extension.js",
@@ -76,9 +82,31 @@
         "command": "devToolkit.explainSelectedCode",
         "title": "Dev Toolkit: Explain Selected Code",
         "icon": "$(book)"
+      },
+      {
+        "command": "devToolkit.showFunctionReferences",
+        "title": "Dev Toolkit: Show Function References",
+        "icon": "$(references)",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "devToolkit.refreshReferences",
+        "title": "Dev Toolkit: Refresh Reference Data",
+        "icon": "$(refresh)",
+        "category": "Dev Toolkit"
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "devToolkit.showFunctionReferences",
+          "when": "false"
+        },
+        {
+          "command": "devToolkit.refreshReferences",
+          "when": "editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']"
+        }
+      ],
       "explorer/context": [
         {
           "command": "devToolkit.showFileSize",
@@ -101,6 +129,18 @@
         {
           "command": "devToolkit.explainSelectedCode",
           "when": "editorTextFocus && editorHasSelection"
+        },
+        {
+          "command": "devToolkit.showFunctionReferences",
+          "when": "editorTextFocus && editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']",
+          "group": "references"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "devToolkit.refreshReferences",
+          "when": "editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']",
+          "group": "navigation"
         }
       ]
     },
@@ -110,6 +150,12 @@
         "key": "ctrl+shift+e",
         "mac": "cmd+shift+e",
         "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "devToolkit.showFunctionReferences",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorTextFocus && editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']"
       }
     ]
   }
