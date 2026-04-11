@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' ${cspSource}; font-src ${cspSource}; script-src 'unsafe-inline' ${cspSource};" />
+  <link rel="stylesheet" href="${codiconsUri}" />
+  <link rel="stylesheet" href="${styleUri}" />
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="title-group">
+        <div class="badges">
+          <span id="algoBadge" class="badge algo">0 analyzers</span>
+          <span id="aiBadge" class="badge ai"><i class="codicon codicon-stars"></i> AI</span>
+          <span id="langBadge" class="badge lang-badge"></span>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="refreshBtn" class="secondary icon" title="Refresh (re-analyze selection)"><i class="codicon codicon-refresh"></i></button>
+        <button id="exportBtn" class="secondary icon" title="Export as Markdown"><i class="codicon codicon-markdown"></i></button>
+        <button id="copyBtn" class="secondary icon" title="Copy summary"><i class="codicon codicon-copy"></i></button>
+      </div>
+    </div>
+
+    <!-- SCROLLABLE CONTENT -->
+    <div class="content">
+      <!-- LOADING STATE -->
+      <div id="stateLoading" class="state">
+        <div class="state-icon"><i class="codicon codicon-loading spin"></i></div>
+        <div class="load-title" id="loadText">Analyzing your code...</div>
+        <div class="progress">
+          <div class="bar"><div id="progFill" class="fill"></div></div>
+          <div id="progStep" class="step">Preparing pipeline...</div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div id="stateEmpty" class="state">
+        <div class="state-icon"><i class="codicon codicon-search"></i></div>
+        <div class="state-text" style="font-size:1rem;font-weight:500;margin-bottom:8px;">No code selected</div>
+        <div style="font-size:0.8rem;color:var(--text-sec);max-width:320px;margin:0 auto 8px;">
+          Select code in the editor, then right-click &rarr; <strong>Explain Selected Code</strong>
+          or press <span class="kbd">Ctrl+Shift+E</span> / <span class="kbd">Cmd+Shift+E</span>.
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-sec);">Works with functions, classes, snippets, and more.</div>
+      </div>
+
+      <!-- ERROR STATE -->
+      <div id="stateError" class="state">
+        <div class="state-icon"><i class="codicon codicon-error"></i></div>
+        <div class="state-text" id="errMsg" style="word-break:break-word;">Analysis failed.</div>
+        <button id="retryBtn" class="secondary" style="margin-top:10px;"><i class="codicon codicon-refresh"></i> Retry</button>
+      </div>
+
+      <!-- CONTENT STATE -->
+      <div id="stateContent" class="explanation">
+        <!-- View Tabs -->
+        <div class="tab-bar">
+          <button id="tabBasic" class="tab-btn active">Basic</button>
+          <button id="tabAnalysis" class="tab-btn">Raw Result</button>
+        </div>
+
+        <div id="basicPane" class="tab-pane active">
+          <!-- Pattern Tags -->
+          <div class="tag-scroll-wrapper">
+            <button id="tagPrev" class="tag-nav" title="Scroll left" aria-label="Scroll tags left"><i class="codicon codicon-chevron-left"></i></button>
+            <div class="tags" id="patternTags" role="list"></div>
+            <button id="tagNext" class="tag-nav" title="Scroll right" aria-label="Scroll tags right"><i class="codicon codicon-chevron-right"></i></button>
+          </div>
+
+          <!-- Metrics Grid -->
+          <div class="metrics">
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-graph"></i> Complexity</div>
+              <div id="mComp" class="card-val">-</div>
+              <div id="mCompDesc" class="card-desc">-</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-git-branch"></i> Cyclomatic</div>
+              <div id="mCyc" class="card-val">-</div>
+              <div class="card-desc">paths</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-indent"></i> Nesting</div>
+              <div id="mNest" class="card-val">-</div>
+              <div class="card-desc">depth</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-checklist"></i> Maintain</div>
+              <div id="mMaint" class="card-val">-</div>
+              <div class="card-desc">/100</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-combine"></i> Cognitive</div>
+              <div id="mCog" class="card-val">-</div>
+              <div class="card-desc">score</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><i class="codicon codicon-symbol-misc"></i> Smells</div>
+              <div id="mSmells" class="card-val">-</div>
+              <div class="card-desc">issues</div>
+            </div>
+          </div>
+
+          <!-- Insights -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-lightbulb"></i> Key Insights</div>
+              <div class="sec-actions">
+                <button class="secondary icon" id="copyIns" title="Copy insights"><i class="codicon codicon-copy"></i></button>
+              </div>
+            </div>
+            <div class="insights" id="insightsList"></div>
+          </div>
+
+          <!-- Summary -->
+          <div class="mode-bar">
+            <div class="mode-label"><i class="codicon codicon-lightbulb"></i> Style</div>
+            <div class="mode-group">
+              <button id="modeStd" class="mode-btn active">Standard</button>
+              <button id="modeBeg" class="mode-btn">Beginner</button>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-comment-discussion"></i> Summary</div>
+              <div class="sec-actions">
+                <button class="secondary" id="copySum"><i class="codicon codicon-copy"></i> Copy</button>
+              </div>
+            </div>
+            <div class="box"><div id="sumText" class="sum-text"></div></div>
+          </div>
+        </div>
+
+        <div id="analysisPane" class="tab-pane">
+          <!-- Technical Details (collapsible) -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-list-tree"></i> Technical Details</div>
+              <div class="sec-actions">
+                <button class="secondary" id="expandDetBtn"><i class="codicon codicon-unfold"></i> Expand</button>
+                <button class="secondary icon" id="copyDet" title="Copy details"><i class="codicon codicon-copy"></i></button>
+              </div>
+            </div>
+            <div class="box"><div id="detText" class="det-text"></div></div>
+          </div>
+
+          <!-- Analyzer Results -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-list-selection"></i> Analyzer Results</div>
+            </div>
+            <div id="algorithmResults" class="algorithm-results"></div>
+          </div>
+
+          <!-- Highlights / Contributors -->
+          <div class="section">
+            <div class="sec-head">
+              <div class="sec-title"><i class="codicon codicon-star"></i> Analysis Pipeline</div>
+            </div>
+            <div class="box">
+              <div id="contributorsList" class="contributors"></div>
+              <div id="aiNote" class="ai-note"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="foot-left">
+        <span id="langLabel">Lang: -</span>
+        <span class="kbd">Ctrl+Shift+E</span>
+      </div>
+      <div><span id="statusLabel">Ready</span></div>
+    </div>
+  </div>
+  <script src="${scriptUri}"></script>
+</body>
+</html>
