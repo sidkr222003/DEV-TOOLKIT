@@ -1,9 +1,9 @@
 {
   "name": "dev-toolkit",
   "displayName": "Dev Toolkit",
-  "description": "Developer utilities: file size display, console log removal, and AI-enhanced code explanation",
+  "description": "Developer utilities: file size display, console log removal, AI-enhanced code explanation, and reference tracking",
   "version": "1.1.0",
-  "publisher": "your-publisher-name",
+  "publisher": "sidkr222003",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -13,10 +13,10 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onCommand:devToolkit.showFileSize",
-    "onCommand:devToolkit.removeConsoleLogs",
-    "onCommand:devToolkit.explainSelectedCode",
-    "onView:devToolkit.codeExplainer"
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
   ],
   "main": "./dist/extension.js",
   "scripts": {
@@ -76,9 +76,31 @@
         "command": "devToolkit.explainSelectedCode",
         "title": "Dev Toolkit: Explain Selected Code",
         "icon": "$(book)"
+      },
+      {
+        "command": "devToolkit.showFunctionReferences",
+        "title": "Dev Toolkit: Show Function References",
+        "icon": "$(references)",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "devToolkit.refreshReferences",
+        "title": "Dev Toolkit: Refresh Reference Data",
+        "icon": "$(refresh)",
+        "category": "Dev Toolkit"
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "devToolkit.showFunctionReferences",
+          "when": "false"
+        },
+        {
+          "command": "devToolkit.refreshReferences",
+          "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'"
+        }
+      ],
       "explorer/context": [
         {
           "command": "devToolkit.showFileSize",
@@ -101,6 +123,18 @@
         {
           "command": "devToolkit.explainSelectedCode",
           "when": "editorTextFocus && editorHasSelection"
+        },
+        {
+          "command": "devToolkit.showFunctionReferences",
+          "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'",
+          "group": "references"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "devToolkit.refreshReferences",
+          "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'",
+          "group": "navigation"
         }
       ]
     },
@@ -110,6 +144,12 @@
         "key": "ctrl+shift+e",
         "mac": "cmd+shift+e",
         "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "devToolkit.showFunctionReferences",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'"
       }
     ]
   }
