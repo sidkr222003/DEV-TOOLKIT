@@ -3,7 +3,7 @@
   "displayName": "Dev Toolkit",
   "description": "Developer utilities: file size display, console log removal, AI-enhanced code explanation, and reference tracking",
   "version": "1.1.0",
-  "publisher": "your-publisher-name",
+  "publisher": "sidkr222003",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -13,16 +13,10 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onCommand:devToolkit.showFileSize",
-    "onCommand:devToolkit.removeConsoleLogs",
-    "onCommand:devToolkit.explainSelectedCode",
-    "onCommand:devToolkit.showFunctionReferences",
-    "onCommand:devToolkit.refreshReferences",
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
     "onLanguage:typescript",
-    "onLanguage:typescriptreact",
-    "onView:devToolkit.codeExplainer"
+    "onLanguage:typescriptreact"
   ],
   "main": "./dist/extension.js",
   "scripts": {
@@ -104,7 +98,7 @@
         },
         {
           "command": "devToolkit.refreshReferences",
-          "when": "editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']"
+          "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'"
         }
       ],
       "explorer/context": [
@@ -132,14 +126,14 @@
         },
         {
           "command": "devToolkit.showFunctionReferences",
-          "when": "editorTextFocus && editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']",
+          "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'",
           "group": "references"
         }
       ],
       "editor/title": [
         {
           "command": "devToolkit.refreshReferences",
-          "when": "editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']",
+          "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'",
           "group": "navigation"
         }
       ]
@@ -155,7 +149,7 @@
         "command": "devToolkit.showFunctionReferences",
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r",
-        "when": "editorTextFocus && editorLangId in ['javascript','typescript','javascriptreact','typescriptreact']"
+        "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'"
       }
     ]
   }
