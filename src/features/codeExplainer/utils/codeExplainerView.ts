@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import * as vscode from "vscode"
-import { createLogger } from "../../utils/logger"
+import { createLogger } from "../../../utils/logger"
 import { runMultiAlgorithmAnalysis } from "./codeAnalysis"
 import { Explanation, ExplanationMode, ViewMessage, ViewPayload } from "./codeExplainerTypes"
 
@@ -231,13 +231,13 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
       : "";
     const cspSource = webview?.cspSource || "";
     const styleUri = webview
-      ? webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "src", "features", "codeExplainer", "styles.css"))
+      ? webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "src", "features", "codeExplainer", "ui", "styles.css"))
       : "";
     const scriptUri = webview
-      ? webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "src", "features", "codeExplainer", "script.js"))
+      ? webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "src", "features", "codeExplainer", "ui", "script.js"))
       : "";
 
-    const htmlPath = path.join(this.context.extensionUri.fsPath, "src", "features", "codeExplainer", "index.html");
+    const htmlPath = path.join(this.context.extensionUri.fsPath, "src", "features", "codeExplainer", "ui", "index.html");
     let html = "";
     try {
       html = fs.readFileSync(htmlPath, "utf8");
