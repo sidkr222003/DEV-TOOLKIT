@@ -608,7 +608,6 @@ class CodeExplainerViewProvider implements vscode.WebviewViewProvider {
     <!-- HEADER -->
     <div class="header">
       <div class="title-group">
-        <span class="title"><i class="codicon codicon-book"></i> Code Explainer</span>
         <div class="badges">
           <span id="algoBadge" class="badge algo">0 analyzers</span>
           <span id="aiBadge" class="badge ai"><i class="codicon codicon-stars"></i> AI</span>
