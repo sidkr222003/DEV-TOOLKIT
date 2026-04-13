@@ -3,6 +3,7 @@
     "module": "commonjs",
     "target": "es2020",
     "lib": ["es2020", "dom"],
+    "types": ["node", "vscode"],
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,

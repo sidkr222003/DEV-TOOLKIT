@@ -8,13 +8,14 @@ type SymbolDefinition = {
   kind: vscode.SymbolKind;
   codeLensRange: vscode.Range;
   symbolRange: vscode.Range;
+  identifierPosition: vscode.Position;
   detail?: string;
   containerName?: string;
   isTopLevel: boolean;
   isExported?: boolean;
   declarationText?: string;
   nestingDepth: number;
-  parentKind?: vscode.SymbolKind; // Track parent symbol kind (Class, Interface, etc.)
+  parentKind?: vscode.SymbolKind;
 };
 
 const supportedLanguages: vscode.DocumentSelector = [
@@ -26,6 +27,8 @@ const supportedLanguages: vscode.DocumentSelector = [
 
 // Cache for symbol definitions with document version tracking
 const symbolCache = new Map<string, { version: number; definitions: SymbolDefinition[] }>();
+// Optional: cache reference counts to avoid repeated lookups
+const refCountCache = new Map<string, number>();
 
 export function registerFunctionReferences(context: vscode.ExtensionContext) {
   const codeLensChangeEmitter = new vscode.EventEmitter<void>();
@@ -42,8 +45,9 @@ export function registerFunctionReferences(context: vscode.ExtensionContext) {
         
         const referenceCount = await countReferences(
           document.uri, 
-          definition.symbolRange.start, 
-          definition.symbolRange
+          definition.identifierPosition,
+          definition.symbolRange,
+          definition.name
         );
         
         const title = referenceCount >= 0 
@@ -53,7 +57,7 @@ export function registerFunctionReferences(context: vscode.ExtensionContext) {
         codeLenses.push(new vscode.CodeLens(definition.codeLensRange, {
           title,
           command: "devToolkit.showFunctionReferences",
-          arguments: [document.uri, definition.symbolRange.start, definition.name]
+          arguments: [document.uri, definition.identifierPosition, definition.name]
         }));
       }
       return codeLenses;
@@ -69,7 +73,7 @@ export function registerFunctionReferences(context: vscode.ExtensionContext) {
         return undefined;
       }
 
-      const references = await fetchReferences(document.uri, definition.symbolRange.start);
+      const references = await fetchReferences(document.uri, definition.identifierPosition);
       if (!references) return undefined;
 
       const externalRefs = references.filter((location) => {
@@ -85,9 +89,23 @@ export function registerFunctionReferences(context: vscode.ExtensionContext) {
 
   const showReferencesCommand = vscode.commands.registerCommand(
     "devToolkit.showFunctionReferences",
-    async (uri: vscode.Uri, position: vscode.Position, symbolName: string) => {
+    async (
+      uri: vscode.Uri | string,
+      position: vscode.Position | { line: number; character: number },
+      symbolName: string
+    ) => {
       try {
-        const references = await fetchReferences(uri, position);
+        const uriObject = typeof uri === "string" ? vscode.Uri.parse(uri) : uri;
+        const positionObject = position instanceof vscode.Position
+          ? position
+          : new vscode.Position(position.line, position.character);
+
+        let references = await fetchReferences(uriObject, positionObject);
+        
+        if (!references || references.length === 0) {
+          // Fallback for symbols without language server reference support
+          references = await findReferencesByTextSearch(uriObject, symbolName);
+        }
         
         if (!references || references.length === 0) {
           vscode.window.showInformationMessage(`No references found for "${symbolName}".`);
@@ -95,15 +113,13 @@ export function registerFunctionReferences(context: vscode.ExtensionContext) {
         }
 
         const filteredRefs = references.filter((location) => {
-          const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === location.uri.toString());
-          if (!doc) return true;
-          return !location.range.isEqual(new vscode.Range(position, position.translate(0, symbolName.length)));
+          return !(location.uri.toString() === uriObject.toString() && location.range.start.isEqual(positionObject));
         });
 
         await vscode.commands.executeCommand(
           "editor.action.showReferences", 
-          uri, 
-          position, 
+          uriObject, 
+          positionObject, 
           filteredRefs
         );
       } catch (error) {
@@ -142,15 +158,13 @@ export function registerFunctionReferences(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("devToolkit.refreshReferences", () => {
       symbolCache.clear();
+      refCountCache.clear();
       codeLensChangeEmitter.fire();
       vscode.window.showInformationMessage("$(check) Reference data refreshed.");
     })
   );
 }
 
-/**
- * Parse symbol definitions using VS Code's native document symbol provider
- */
 async function parseSymbolDefinitions(document: vscode.TextDocument): Promise<SymbolDefinition[]> {
   const cacheKey = document.uri.toString();
   const cached = symbolCache.get(cacheKey);
@@ -182,9 +196,6 @@ async function parseSymbolDefinitions(document: vscode.TextDocument): Promise<Sy
   }
 }
 
-/**
- * Recursively flatten symbol hierarchy and detect exported/top-level symbols
- */
 function flattenSymbols(
   symbols: vscode.DocumentSymbol[], 
   output: SymbolDefinition[], 
@@ -211,6 +222,7 @@ function flattenSymbols(
         kind: symbol.kind,
         codeLensRange,
         symbolRange,
+        identifierPosition: symbolRange.start,
         detail: symbol.detail,
         containerName,
         isTopLevel,
@@ -222,15 +234,11 @@ function flattenSymbols(
     }
     
     if (symbol.children?.length) {
-      // Pass current symbol's kind as parentKind for children
       flattenSymbols(symbol.children, output, document, symbol.name, depth + 1, symbol.kind);
     }
   }
 }
 
-/**
- * Check if a name is meaningful (not a throwaway variable)
- */
 function isMeaningfulName(name: string, kind: vscode.SymbolKind): boolean {
   const noisePatterns = [
     /^[ij]$/, /^[a-z]$/, /^temp\d*$/i, /^tmp\d*$/i, /^_\w+$/, 
@@ -264,78 +272,56 @@ function isMeaningfulName(name: string, kind: vscode.SymbolKind): boolean {
   return name.length >= 4;
 }
 
-/**
- * Check if symbol should display CodeLens - excludes interface/type properties
- */
+function isConstantLike(definition: SymbolDefinition): boolean {
+  if (definition.kind === vscode.SymbolKind.Constant) return true;
+  return definition.kind === vscode.SymbolKind.Variable &&
+    /\bconst\b/.test(definition.declarationText ?? "");
+}
+
 function shouldShowCodeLens(definition: SymbolDefinition): boolean {
   const { kind, name, isTopLevel, isExported, nestingDepth, parentKind } = definition;
   const isExportedBool = Boolean(isExported);
   
-  // ❌ NEVER SHOW: Properties/Fields that belong to Interfaces or Type aliases
-  // These are structural, not behavioral - references are unreliable and noisy
   if ((kind === vscode.SymbolKind.Property || kind === vscode.SymbolKind.Field) && 
       (parentKind === vscode.SymbolKind.Interface || parentKind === vscode.SymbolKind.Struct)) {
     return false;
   }
   
-  // ✅ ALWAYS SHOW: Exported symbols (public API) regardless of nesting
-  if (isExportedBool) {
-    return true;
-  }
+  if (isExportedBool) return true;
   
-  // ✅ ALWAYS SHOW: Top-level architecture symbols
   if (isTopLevel && [
     vscode.SymbolKind.Class,
     vscode.SymbolKind.Interface,
     vscode.SymbolKind.Enum,
-  ].includes(kind)) {
-    return true;
-  }
+  ].includes(kind)) return true;
   
-  // ✅ SHOW: Functions/Methods that are meaningful (top-level OR nested)
   if ([vscode.SymbolKind.Function, vscode.SymbolKind.Method].includes(kind)) {
     if (isTopLevel) return isMeaningfulName(name, kind);
     return isMeaningfulName(name, kind) && nestingDepth <= 3;
   }
   
-  // ✅ SHOW: Constants that look important
-  if (kind === vscode.SymbolKind.Constant) {
-    return isMeaningfulName(name, kind);
+  if (isConstantLike(definition)) {
+    return isTopLevel || isMeaningfulName(name, vscode.SymbolKind.Constant);
   }
   
-  // ✅ SHOW: Variables that look like services/config
   if (kind === vscode.SymbolKind.Variable) {
     return isMeaningfulName(name, kind) && (isTopLevel || nestingDepth <= 2);
   }
   
-  // ✅ SHOW: Properties in CLASSES (not interfaces) that aren't private
   if (kind === vscode.SymbolKind.Property) {
-    // Only show if parent is a Class (not Interface/Struct)
-    if (parentKind === vscode.SymbolKind.Class) {
-      return isMeaningfulName(name, kind);
-    }
+    if (parentKind === vscode.SymbolKind.Class) return isMeaningfulName(name, kind);
     return false;
   }
   
-  // ✅ SHOW: Constructors
-  if (kind === vscode.SymbolKind.Constructor) {
-    return true;
-  }
+  if (kind === vscode.SymbolKind.Constructor) return true;
   
-  // ❌ Hide everything else
   return false;
 }
 
-/**
- * Check if symbol should display hover info - same as CodeLens for consistency
- */
 function shouldShowHover(definition: SymbolDefinition): boolean {
   return shouldShowCodeLens(definition);
 }
 
-/**
- * Check if symbol kind is relevant for reference tracking
- */
 function isRelevantSymbol(kind: vscode.SymbolKind): boolean {
   return [
     vscode.SymbolKind.Function,
@@ -351,9 +337,6 @@ function isRelevantSymbol(kind: vscode.SymbolKind): boolean {
   ].includes(kind);
 }
 
-/**
- * Fetch references using VS Code's reference provider
- */
 async function fetchReferences(uri: vscode.Uri, position: vscode.Position): Promise<vscode.Location[] | undefined> {
   try {
     return await vscode.commands.executeCommand<vscode.Location[]>(
@@ -368,34 +351,85 @@ async function fetchReferences(uri: vscode.Uri, position: vscode.Position): Prom
 }
 
 /**
- * Count references excluding the definition itself
+ * Fallback text search with strict matching, comment filtering & deduplication
  */
+async function findReferencesByTextSearch(uri: vscode.Uri, symbolName: string, definitionRange?: vscode.Range): Promise<vscode.Location[]> {
+  const results: vscode.Location[] = [];
+  const seen = new Set<string>();
+  
+  try {
+    const document = await vscode.workspace.openTextDocument(uri);
+    const text = document.getText();
+    
+    // Strict word boundaries: must not be preceded/followed by identifier characters
+    const regex = new RegExp(`(?<![a-zA-Z0-9_])${escapeRegex(symbolName)}(?![a-zA-Z0-9_])`, 'g');
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      const startPos = document.positionAt(match.index);
+      const endPos = document.positionAt(match.index + match[0].length);
+      const locKey = `${startPos.line}:${startPos.character}`;
+      
+      // Skip duplicates
+      if (seen.has(locKey)) continue;
+      seen.add(locKey);
+      
+      // Skip exact definition match
+      if (definitionRange && startPos.isEqual(definitionRange.start) && endPos.isEqual(definitionRange.end)) continue;
+      
+      // Basic heuristic: skip lines that are clearly comments or strings
+      const lineText = document.lineAt(startPos.line).text.trim();
+      if (/^(\/\/|\/\*|\*|\/\*\*|``|""|'')/.test(lineText)) continue;
+      
+      results.push(new vscode.Location(uri, new vscode.Range(startPos, endPos)));
+    }
+  } catch (error) {
+    logger.warn("FindReferencesByTextSearch", error instanceof Error ? error.message : String(error));
+  }
+  
+  return results;
+}
+
 async function countReferences(
   uri: vscode.Uri, 
   position: vscode.Position, 
-  symbolRange: vscode.Range
+  symbolRange: vscode.Range,
+  symbolName: string
 ): Promise<number> {
-  const references = await fetchReferences(uri, position);
-  if (!references) return -1;
+  const cacheKey = `${uri.toString()}:${symbolName}:${symbolRange.start.line}:${symbolRange.start.character}`;
+  if (refCountCache.has(cacheKey)) return refCountCache.get(cacheKey)!;
 
-  return references.filter((location) => {
-    const isSameFile = location.uri.toString() === uri.toString();
-    const isSameRange = location.range.isEqual(symbolRange);
-    return !(isSameFile && isSameRange);
+  let references = await fetchReferences(uri, position);
+  
+  // Fallback only if provider returns empty/undefined
+  if (!references || references.length === 0) {
+    references = await findReferencesByTextSearch(uri, symbolName, symbolRange);
+  }
+  
+  if (!references) {
+    refCountCache.set(cacheKey, -1);
+    return -1;
+  }
+
+  const count = references.filter(location => {
+    if (location.uri.toString() !== uri.toString()) return true;
+    // Exclude definition range or overlapping ranges
+    return !location.range.intersection(symbolRange);
   }).length;
+
+  refCountCache.set(cacheKey, count);
+  return count;
 }
 
-/**
- * Build rich markdown content for hover with CLICKABLE reference links
- */
 async function buildHoverMarkdown(
   definition: SymbolDefinition,
   references: vscode.Location[],
   currentUri: vscode.Uri
 ): Promise<vscode.MarkdownString> {
   const markdown = new vscode.MarkdownString();
+  // ✅ CRITICAL: Enables $(codicon) rendering
+  markdown.supportThemeIcons = true;
   markdown.isTrusted = true;
-  markdown.supportHtml = false;
   
   const kindIcon = getSymbolKindIcon(definition.kind);
   const container = definition.containerName 
@@ -405,20 +439,17 @@ async function buildHoverMarkdown(
     ? ` _(${definition.nestingDepth}x nested)_` 
     : '';
   
-  // Header with symbol kind icon and nesting indicator
   markdown.appendMarkdown(`### ${kindIcon} \`${definition.name}\`${container}${nesting}\n\n`);
   
-  // Show declaration preview if available
   if (definition.declarationText) {
     const preview = definition.declarationText.split('\n')[0].trim();
     if (preview && !preview.includes(definition.name + '(')) {
-      markdown.appendMarkdown(`\`\`\`typescript\n${escapeMarkdown(preview)}\n\`\`\`\n\n`);
+      markdown.appendMarkdown(`\`\`\`typescript\n${preview}\n\`\`\`\n\n`);
     }
   } else if (definition.detail) {
     markdown.appendMarkdown(`*${escapeMarkdown(definition.detail)}*\n\n`);
   }
 
-  // Reference count header
   const count = references.length;
   const refIcon = count > 0 ? "$(references)" : "$(debug-disconnect)";
   markdown.appendMarkdown(`**${refIcon} ${count} reference${count !== 1 ? 's' : ''}**\n\n`);
@@ -429,7 +460,6 @@ async function buildHoverMarkdown(
     return markdown;
   }
 
-  // Group references by file for organized display
   const refsByFile = groupReferencesByFile(references);
   const displayedFiles = Array.from(refsByFile.entries()).slice(0, 5);
 
@@ -439,13 +469,11 @@ async function buildHoverMarkdown(
     
     markdown.appendMarkdown(`#### ${fileIcon} \`${fileName}\` (${fileRefs.length})\n`);
     
-    // Show clickable references: filename:line — preview text
     const previewRefs = fileRefs.slice(0, 3);
     for (const location of previewRefs) {
       const lineNum = location.range.start.line + 1;
       const preview = await getReferencePreview(location);
       
-      // Create CLICKABLE link using vscode.open command with selection
       const selection = {
         start: { line: location.range.start.line, character: location.range.start.character },
         end: { line: location.range.end.line, character: location.range.end.character }
@@ -477,9 +505,6 @@ async function buildHoverMarkdown(
   return markdown;
 }
 
-/**
- * Add "View All References" command link
- */
 function addViewAllReferencesLink(
   markdown: vscode.MarkdownString,
   currentUri: vscode.Uri,
@@ -487,32 +512,24 @@ function addViewAllReferencesLink(
 ): void {
   const args = encodeURIComponent(JSON.stringify([
     currentUri.toString(),
-    { line: definition.symbolRange.start.line, character: definition.symbolRange.start.character },
+    { line: definition.identifierPosition.line, character: definition.identifierPosition.character },
     definition.name
   ]));
   markdown.appendMarkdown(`\n\n[$(search) View All References](command:devToolkit.showFunctionReferences?${args})`);
 }
 
-/**
- * Group references by file path
- */
 function groupReferencesByFile(references: vscode.Location[]): Map<string, vscode.Location[]> {
   const grouped = new Map<string, vscode.Location[]>();
   
   for (const ref of references) {
     const filePath = ref.uri.fsPath || ref.uri.toString();
-    if (!grouped.has(filePath)) {
-      grouped.set(filePath, []);
-    }
+    if (!grouped.has(filePath)) grouped.set(filePath, []);
     grouped.get(filePath)!.push(ref);
   }
   
   return grouped;
 }
 
-/**
- * Get preview text for a reference line
- */
 async function getReferencePreview(location: vscode.Location): Promise<string> {
   try {
     const document = await vscode.workspace.openTextDocument(location.uri);
@@ -523,9 +540,6 @@ async function getReferencePreview(location: vscode.Location): Promise<string> {
   }
 }
 
-/**
- * Get VS Code codicon for symbol kind
- */
 function getSymbolKindIcon(kind: vscode.SymbolKind): string {
   const codicons: Record<vscode.SymbolKind, string> = {
     [vscode.SymbolKind.File]: "$(file)",
@@ -559,7 +573,7 @@ function getSymbolKindIcon(kind: vscode.SymbolKind): string {
 }
 
 /**
- * Get file icon based on extension
+ * Updated file icons as requested
  */
 function getFileIcon(filePath: string): string {
   const ext = filePath.split('.').pop()?.toLowerCase();
@@ -578,7 +592,7 @@ function getFileIcon(filePath: string): string {
 }
 
 /**
- * Escape markdown special characters
+ * Escape markdown special characters (parentheses intentionally NOT escaped)
  */
 function escapeMarkdown(text: string): string {
   return text
@@ -590,11 +604,13 @@ function escapeMarkdown(text: string): string {
     .replace(/\}/g, "\\}")
     .replace(/\[/g, "\\[")
     .replace(/\]/g, "\\]")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)")
     .replace(/#/g, "\\#")
     .replace(/\+/g, "\\+")
     .replace(/\-/g, "\\-")
     .replace(/\./g, "\\.")
     .replace(/\!/g, "\\!");
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

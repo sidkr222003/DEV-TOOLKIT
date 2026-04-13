@@ -1,6 +1,6 @@
-import * as path from "path";
-import * as fs from "fs";
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { createLogger } from "../utils/logger";
 
 const logger = createLogger("Dev Toolkit");
@@ -36,45 +36,44 @@ export function registerFileSize(context: vscode.ExtensionContext) {
   statusBarItem.tooltip = "Current file size";
   context.subscriptions.push(statusBarItem);
 
+  // ✅ Fixed: Only use VALID properties for ThemableDecorationAttachmentRenderOptions
   const importDecorationType = vscode.window.createTextEditorDecorationType({
     after: {
       margin: "0 0 0 0.75rem",
       backgroundColor: new vscode.ThemeColor("editorHoverWidget.background"),
       color: new vscode.ThemeColor("editor.foreground"),
-      border: "0.5px solid var(--vscode-editorWidget-border)",
-      textDecoration: "none; border-radius: 4px; padding: 0 4px;",
-      fontStyle: "normal"
+      border: "1px solid var(--vscode-editorWidget-border)",
+      textDecoration: "none; font-style: normal; font-weight: normal;"
     }
   });
 
   const codeLensChangeEmitter = new vscode.EventEmitter<void>();
-  const fileSizeCodeLensProvider = (() => {
-    return vscode.languages.registerCodeLensProvider({ scheme: "file" }, {
-      onDidChangeCodeLenses: codeLensChangeEmitter.event,
-      provideCodeLenses(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.ProviderResult<vscode.CodeLens[]> {
-        if (document.isUntitled) {
-          return [];
-        }
-
-        try {
-          const stat = fs.statSync(document.uri.fsPath);
-          if (!stat.isFile()) {
-            return [];
-          }
-
-          return [
-            new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-              title: `File size: ${formatBytes(stat.size)}`,
-              command: "devToolkit.showFileSize",
-              arguments: [document.uri]
-            })
-          ];
-        } catch {
-          return [];
-        }
+  
+  const fileSizeCodeLensProvider = vscode.languages.registerCodeLensProvider({ scheme: "file" }, {
+    onDidChangeCodeLenses: codeLensChangeEmitter.event,
+    provideCodeLenses(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.ProviderResult<vscode.CodeLens[]> {
+      if (document.isUntitled) {
+        return [];
       }
-    } as any);
-  })();
+
+      try {
+        const stat = fs.statSync(document.uri.fsPath);
+        if (!stat.isFile()) {
+          return [];
+        }
+
+        return [
+          new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+            title: `File size: ${formatBytes(stat.size)}`,
+            command: "devToolkit.showFileSize",
+            arguments: [document.uri]
+          })
+        ];
+      } catch {
+        return [];
+      }
+    }
+  });
 
   context.subscriptions.push(importDecorationType, showFileSizeCommand, fileSizeCodeLensProvider, codeLensChangeEmitter);
 
@@ -134,48 +133,66 @@ async function resolveFileUri(resource: vscode.Uri | undefined) {
   return editor?.document.uri;
 }
 
+// ✅ Fixed: Only use VALID properties in renderOptions.after
 function updateImportDecorations(editor: vscode.TextEditor | undefined, decorationType: vscode.TextEditorDecorationType) {
   if (!editor) {
     return;
   }
 
   const decorations: vscode.DecorationOptions[] = [];
-  const importPathRegex = /from\s*["']([^"']+)["']|^\s*import\s*["']([^"']+)["']/;
+  const importRegex = /(?:from\s+|import\s+)["']([^"']+)["']/g;
 
   for (let i = 0; i < editor.document.lineCount; i++) {
     const line = editor.document.lineAt(i);
-    const match = importPathRegex.exec(line.text);
-    if (!match) {
-      continue;
-    }
+    const matches = [...line.text.matchAll(importRegex)];
+    
+    for (const match of matches) {
+      const modulePath = match[1];
+      if (!modulePath) continue;
 
-    const modulePath = match[1] || match[2];
-    if (!modulePath) {
-      continue;
-    }
-
-    const resolvedPath = resolveImportSource(editor.document.uri, modulePath);
-    if (!resolvedPath) {
-      continue;
-    }
-
-    try {
-      const stat = fs.statSync(resolvedPath);
-      if (!stat.isFile()) {
+      const resolvedPath = resolveImportSource(editor.document.uri, modulePath);
+      
+      // ✅ Handle built-in modules gracefully
+      if (!resolvedPath) {
+        const builtInModules = ['fs', 'path', 'os', 'vscode', 'util', 'events', 'stream', 'http', 'https', 'crypto', 'child_process', 'buffer', 'querystring', 'url', 'assert', 'tty', 'net', 'dgram', 'dns', 'zlib', 'readline', 'repl', 'tls', 'punycode', 'cluster', 'worker_threads', 'perf_hooks', 'inspector', 'async_hooks', 'trace_events', 'v8', 'vm', 'wasi', 'timers', 'console', 'process', 'module'];
+        if (builtInModules.includes(modulePath)) {
+          decorations.push({
+            range: new vscode.Range(i, line.text.length, i, line.text.length),
+            renderOptions: {
+              after: {
+                contentText: '〈built-in〉',
+                color: new vscode.ThemeColor("editorCodeLens.foreground"),
+                margin: "0 0 0 0.75rem",
+                fontStyle: "italic",
+                textDecoration: "none"
+              }
+            }
+          });
+        }
         continue;
       }
 
-      decorations.push({
-        range: new vscode.Range(i, line.text.length, i, line.text.length),
-        renderOptions: {
-          after: {
-            contentText: `${formatBytes(stat.size)}`,
-            color: new vscode.ThemeColor("editorCodeLens.foreground")
+      try {
+        const stat = fs.statSync(resolvedPath);
+        if (!stat.isFile()) continue;
+
+        decorations.push({
+          range: new vscode.Range(i, line.text.length, i, line.text.length),
+          renderOptions: {
+            after: {
+              contentText: `${formatBytes(stat.size)}`,
+              // ✅ ONLY valid properties for ThemableDecorationAttachmentRenderOptions:
+              color: new vscode.ThemeColor("editorCodeLens.foreground"),
+              margin: "0 0 0 0.75rem",
+              backgroundColor: new vscode.ThemeColor("editorHoverWidget.background"),
+              border: "0.5px solid var(--vscode-editorWidget-border)",
+              textDecoration: "none; font-style: normal; font-weight: normal;padding: 0.1em 0.3em; border-radius: 3px;"
+            }
           }
-        }
-      });
-    } catch {
-      continue;
+        });
+      } catch {
+        continue;
+      }
     }
   }
 
@@ -235,8 +252,12 @@ function resolveExistingFile(basePath: string): string | undefined {
   const extensions = ["", ".ts", ".tsx", ".js", ".jsx", ".d.ts", "/index.ts", "/index.tsx", "/index.js", "/index.jsx"];
   for (const extension of extensions) {
     const candidate = `${basePath}${extension}`;
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
-      return candidate;
+    try {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+        return candidate;
+      }
+    } catch {
+      continue;
     }
   }
   return undefined;

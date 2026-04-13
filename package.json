@@ -25,11 +25,13 @@
     "watch": "tsc -w -p ./"
   },
   "dependencies": {
+    "@babel/parser": "^7.29.2",
+    "@babel/types": "^7.29.0",
     "@vscode/codicons": "^0.0.45",
     "typescript": "^5.5.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.19.39",
     "@types/vscode": "^1.93.0"
   },
   "contributes": {
@@ -81,6 +83,12 @@
         "command": "devToolkit.showFunctionReferences",
         "title": "Dev Toolkit: Show Function References",
         "icon": "$(references)",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "devToolkit.showReadTime",
+        "title": "Dev Toolkit: Show Read Time",
+        "icon": "$(clock)",
         "category": "Dev Toolkit"
       },
       {
