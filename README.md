@@ -9,6 +9,7 @@ Dev Toolkit is a VS Code extension with essential developer utilities.
 - **Console Log Remover** - Remove all `console.*` statements from JavaScript/TypeScript files or selected text
 - **Function Reference Tracker** - Locate and display references to functions across your workspace for fast navigation and analysis
 - **Code Explainer** - Explain selected code with an AI-enhanced view panel and an editor command for quick context-aware insights
+- **Read Time Estimator** - Show estimated read time for JavaScript, TypeScript, and Markdown files in the status bar
 
 ## Documentation
 
