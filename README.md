@@ -10,9 +10,3 @@ Dev Toolkit is a VS Code extension with essential developer utilities.
 - **Function Reference Tracker** - Locate and display references to functions across your workspace for fast navigation and analysis
 - **Code Explainer** - Explain selected code with an AI-enhanced view panel and an editor command for quick context-aware insights
 - **Read Time Estimator** - Show estimated read time for JavaScript, TypeScript, and Markdown files in the status bar
-
-## Documentation
-
-- [`MILESTONES.md`](./MILESTONES.md) - Roadmap and release milestones
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) - Contribution guide, branch protection rules, and PR checklist
-- [`.github/branch_protection.md`](./.github/branch_protection.md) - Recommended branch protection rules
