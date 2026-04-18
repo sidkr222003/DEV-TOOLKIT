@@ -15,4 +15,3 @@ Dev Toolkit is a VS Code extension with essential developer utilities.
 
 - [`MILESTONES.md`](./MILESTONES.md) - Roadmap and release milestones
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) - Contribution guide, branch protection rules, and PR checklist
-- [`.github/branch_protection.md`](./.github/branch_protection.md) - Recommended branch protection rules
