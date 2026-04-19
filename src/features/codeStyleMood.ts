@@ -39,16 +39,16 @@ export function registerCodeStyleMood(context: vscode.ExtensionContext) {
       tooltipMd.appendMarkdown(`${mood.details.naming}\n\n`);
       tooltipMd.appendMarkdown(`${mood.details.comments}\n\n`);
       tooltipMd.appendMarkdown(`${mood.details.functions}\n\n`);
-      tooltipMd.appendMarkdown(`${mood.details.complexity}\n\n`);
+      tooltipMd.appendMarkdown(`${mood.details.cleanliness}\n\n`);
       tooltipMd.appendMarkdown(`---\n\n`);
-      tooltipMd.appendMarkdown(`*${mood.details.lineLength.split(":")[1]?.trim() || "Analysis ready"}*`);
+      tooltipMd.appendMarkdown(`*${mood.emoji} ${mood.mood}*`);
       tooltipMd.supportThemeIcons = true;
       tooltipMd.isTrusted = true;
 
       moodStatusBar.tooltip = tooltipMd;
       moodStatusBar.show();
 
-      logger.info("CodeStyleMood", `Updated: ${mood.mood} (${mood.score.toFixed(2)})`);
+      logger.debug("CodeStyleMood", `Updated: ${mood.mood} (${mood.score.toFixed(2)})`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.error("CodeStyleMood", `Analysis failed: ${message}`);
@@ -61,9 +61,11 @@ export function registerCodeStyleMood(context: vscode.ExtensionContext) {
   context.subscriptions.push(editorChangeSubscription);
 
   // Debounced update on document changes
-  let updateTimer: NodeJS.Timeout;
+  let updateTimer: ReturnType<typeof setTimeout> | undefined;
   const debounceUpdate = () => {
-    clearTimeout(updateTimer);
+    if (updateTimer !== undefined) {
+      clearTimeout(updateTimer);
+    }
     updateTimer = setTimeout(() => {
       updateMoodBadge(vscode.window.activeTextEditor);
     }, 200);

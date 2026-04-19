@@ -9,7 +9,7 @@ export interface CodeStyleMood {
     naming: string;
     comments: string;
     functions: string;
-    complexity: string;
+    cleanliness: string;
   };
   tooltip: string;
 }
@@ -107,8 +107,9 @@ export function analyzeCodeStyle(document: vscode.TextDocument): CodeStyleMood {
   const commentScore = calculateCommentScore(metrics);
   const functionScore = calculateFunctionScore(metrics);
   const cleanlinessScore = calculateCleanliness(metrics);
+  const namingScore = metrics.variableNamingScore;
 
-  const overallScore = (lineScore + commentScore + functionScore + cleanlinessScore) / 4;
+  const overallScore = (lineScore + commentScore + functionScore + cleanlinessScore + namingScore) / 5;
 
   // Determine mood
   const mood = determineMood(overallScore);
@@ -119,7 +120,7 @@ export function analyzeCodeStyle(document: vscode.TextDocument): CodeStyleMood {
     naming: `Naming Quality: ${(metrics.variableNamingScore * 100).toFixed(0)}%`,
     comments: `Comment Ratio: ${((metrics.commentLineCount / metrics.totalLines) * 100).toFixed(1)}%`,
     functions: `Avg Function Length: ${metrics.avgFunctionLength.toFixed(0)} lines`,
-    complexity: `Cleanliness: ${formatCleanliness(metrics)}`,
+    cleanliness: `Cleanliness: ${formatCleanliness(metrics)}`,
   };
 
   const tooltip = buildTooltip(details, mood.message);
@@ -134,26 +135,23 @@ export function analyzeCodeStyle(document: vscode.TextDocument): CodeStyleMood {
 }
 
 function analyzeNaming(text: string): number {
-  const variablePattern = /(?:const|let|var)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
-  const functionPattern = /(?:function|const)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=?/g;
+  // Match variable declarations and function declarations
+  const pattern = /(?:const|let|var|function)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?:=|\(|:|;)/g;
 
   let goodNames = 0;
   let totalNames = 0;
+  const seenNames = new Set<string>();
 
   let match;
-  while ((match = variablePattern.exec(text)) !== null) {
-    totalNames++;
+  while ((match = pattern.exec(text)) !== null) {
     const name = match[1];
-    if (name.length >= 3 && !isSingleLetter(name)) {
-      goodNames++;
-    }
-  }
-
-  while ((match = functionPattern.exec(text)) !== null) {
-    totalNames++;
-    const name = match[1];
-    if (name.length >= 3 && !isSingleLetter(name)) {
-      goodNames++;
+    // Count each unique identifier only once to avoid duplication
+    if (!seenNames.has(name)) {
+      seenNames.add(name);
+      totalNames++;
+      if (name.length >= 3 && !isSingleLetter(name)) {
+        goodNames++;
+      }
     }
   }
 
@@ -165,13 +163,13 @@ function isSingleLetter(name: string): boolean {
 }
 
 function calculateLineScore(metrics: any): number {
-  const longLineRatio = metrics.veryLongLineCount / (metrics.codeLineCount || 1);
-  const veryLongRatio = metrics.longLineCount / (metrics.codeLineCount || 1);
+  const veryLongRatio = metrics.veryLongLineCount / (metrics.codeLineCount || 1);
+  const longRatio = metrics.longLineCount / (metrics.codeLineCount || 1);
 
-  if (longLineRatio > 0.5) return 0.3;
-  if (longLineRatio > 0.2) return 0.5;
-  if (veryLongRatio > 0.5) return 0.6;
-  if (veryLongRatio > 0.2) return 0.8;
+  if (veryLongRatio > 0.5) return 0.3;
+  if (veryLongRatio > 0.2) return 0.5;
+  if (longRatio > 0.5) return 0.6;
+  if (longRatio > 0.2) return 0.8;
   return 1.0;
 }
 
