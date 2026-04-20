@@ -1,0 +1,218 @@
+:root {
+    --vscode-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --green: #4caf50;
+    --light-green: #8bc34a;
+    --bg-card: var(--vscode-sideBar-background);
+    --border: var(--vscode-widget-border, #333);
+}
+
+body {
+    padding: 12px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-sideBar-foreground);
+    background-color: var(--vscode-sideBar-background);
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.4;
+    user-select: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.selector-container {
+    position: relative;
+    flex: 1;
+    margin-right: 8px;
+}
+
+#featureSelector {
+    width: 100%;
+    padding: 6px 10px;
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 4px;
+    appearance: none;
+    outline: none;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.selector-container .codicon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 10px;
+}
+
+header button {
+    background: transparent;
+    border: none;
+    color: var(--vscode-button-foreground);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px;
+}
+
+header button:hover {
+    color: var(--vscode-button-hoverBackground);
+}
+
+.stats-card {
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.best-metric {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+.metric-label {
+    color: var(--vscode-descriptionForeground);
+}
+
+.metric-value {
+    font-weight: 600;
+}
+
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--vscode-descriptionForeground);
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 120px;
+    padding: 8px;
+    background: var(--vscode-input-background);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+}
+
+.bar-wrapper {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    cursor: pointer;
+}
+
+.bar {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.bar.primary {
+    background-color: var(--green);
+}
+
+.bar.secondary {
+    background-color: var(--light-green);
+}
+
+.bar-wrapper:hover .bar {
+    transform: scaleX(1.1);
+    filter: brightness(1.2);
+}
+
+.selection-detail {
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-focusBorder);
+    border-radius: 6px;
+    padding: 12px;
+    animation: fadeIn 0.3s ease;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item .label {
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    text-transform: uppercase;
+}
+
+.detail-item .value {
+    font-weight: bold;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#emptyState {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+}
+
+.hint {
+    font-style: italic;
+    font-size: 12px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

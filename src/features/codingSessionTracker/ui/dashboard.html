@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="${codiconsUri}">
+    <link rel="stylesheet" href="${styleUri}">
+    <title>Session Tracker Dashboard</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="selector-container">
+                <select id="featureSelector">
+                    <option value="tracker" selected>Session Tracker</option>
+                    <option value="explainer">Code Explainer</option>
+                </select>
+                <i class="codicon codicon-chevron-down"></i>
+            </div>
+            <div class="actions">
+                <button id="refreshBtn" title="Refresh Data">
+                    <i class="codicon codicon-refresh"></i>
+                </button>
+            </div>
+        </header>
+
+        <main id="trackerContent">
+            <div class="stats-card">
+                <div class="stat-header">
+                    <i class="codicon codicon-trophy"></i>
+                    <span>All-Time Best</span>
+                </div>
+                <div class="best-metric">
+                    <div class="metric-label">Focus Streak</div>
+                    <div id="bestStreak" class="metric-value">0m 0s</div>
+                </div>
+                <div class="best-metric">
+                    <div class="metric-label">Max Active Time</div>
+                    <div id="maxActiveTime" class="metric-value">0m 0s</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-header">
+                    <i class="codicon codicon-graph"></i>
+                    <span>Session History</span>
+                </div>
+                <div id="barChart" class="bar-chart">
+                    <!-- Bars will be injected here -->
+                </div>
+            </div>
+
+            <div id="selectionDetail" class="selection-detail hidden">
+                <div class="detail-header">
+                    <i class="codicon codicon-calendar"></i>
+                    <span id="detailDate">Session Detail</span>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="label">Duration</span>
+                        <span id="detailDuration" class="value">0m 0s</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Active</span>
+                        <span id="detailActive" class="value">0m 0s</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Peak Streak</span>
+                        <span id="detailStreak" class="value">0m 0s</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer id="emptyState" class="hidden">
+            <div class="empty-icon"><i class="codicon codicon-history"></i></div>
+            <p>No session data recorded yet.</p>
+            <p class="hint">Your productivity will appear here as you code.</p>
+        </footer>
+    </div>
+    <script src="${scriptUri}"></script>
+</body>
+</html>

@@ -9,6 +9,9 @@ import { registerCodeExplainer } from "./features/codeExplainer";
 import { registerFunctionReferences } from "./features/functionReferences";
 import { registerCodeStyleMood } from "./features/codeStyleMood";
 
+import { registerSessionTimer } from "./features/codingSessionTracker/sessionTimer";
+import { registerSessionTracker } from "./features/codingSessionTracker/sessionTrackerView";
+
 export function activate(context: vscode.ExtensionContext) {
   registerFileSize(context);
   registerExplorerSizeDecorations(context);
@@ -19,6 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
   registerCodeExplainer(context);
   registerFunctionReferences(context);
   registerCodeStyleMood(context);
+  registerSessionTimer(context);
+  registerSessionTracker(context);
 }
 
 export function deactivate(): void {}

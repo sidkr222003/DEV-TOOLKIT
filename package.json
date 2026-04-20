@@ -42,6 +42,16 @@
           "type": "boolean",
           "default": true,
           "description": "Use GitHub Copilot (mini model) to enhance code explanations with AI. 0x cost for extensions. Disable to use static analysis only."
+        },
+        "devToolkit.sessionTracker.idleDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable idle detection for the coding session tracker. If enabled, the timer will only increment when you are actively coding (within 60 seconds of last activity)."
+        },
+        "devToolkit.sessionTracker.breakReminderInterval": {
+          "type": "number",
+          "default": 45,
+          "description": "The number of minutes of continuous active coding after which to show a break reminder notification."
         }
       }
     },
@@ -59,7 +69,14 @@
         {
           "id": "devToolkit.codeExplainer",
           "type": "webview",
-          "name": "Code Explainer"
+          "name": "Code Explainer",
+          "icon": "$(book)"
+        },
+        {
+          "id": "devToolkit.sessionTracker",
+          "type": "webview",
+          "name": "Session Tracker",
+          "icon": "$(graph)"
         }
       ]
     },
@@ -105,6 +122,11 @@
         "command": "devToolkit.refreshReferences",
         "title": "Dev Toolkit: Refresh Reference Data",
         "icon": "$(refresh)",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "devToolkit.showSessionMetrics",
+        "title": "Dev Toolkit: Show Session Metrics",
         "category": "Dev Toolkit"
       }
     ],
