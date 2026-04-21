@@ -1,7 +1,7 @@
 :root {
     --vscode-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --green: #4caf50;
-    --light-green: #8bc34a;
+    --green: var(--vscode-charts-green, #4caf50);
+    --light-green: var(--vscode-charts-lightGreen, #8bc34a);
     --bg-card: var(--vscode-sideBar-background);
     --border: var(--vscode-widget-border, #333);
 }
@@ -29,45 +29,34 @@ header {
     align-items: center;
 }
 
-.selector-container {
-    position: relative;
-    flex: 1;
-    margin-right: 8px;
-}
-
-#featureSelector {
-    width: 100%;
-    padding: 6px 10px;
-    background: var(--vscode-dropdown-background);
-    color: var(--vscode-dropdown-foreground);
-    border: 1px solid var(--vscode-dropdown-border);
-    border-radius: 4px;
-    appearance: none;
-    outline: none;
+.title {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
+    color: var(--vscode-sideBarTitle-foreground, var(--vscode-sideBar-foreground));
 }
 
-.selector-container .codicon {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    font-size: 10px;
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 header button {
     background: transparent;
-    border: none;
+    border: 1px solid var(--vscode-button-border, var(--border));
+    border-radius: 4px;
     color: var(--vscode-button-foreground);
     cursor: pointer;
     font-size: 16px;
-    padding: 2px;
+    padding: 4px 6px;
 }
 
 header button:hover {
-    color: var(--vscode-button-hoverBackground);
+    background: var(--vscode-toolbar-hoverBackground, var(--vscode-button-hoverBackground));
+}
+
+#toggleTrackingBtn.paused {
+    color: var(--vscode-charts-red, #e57373);
 }
 
 .stats-card {

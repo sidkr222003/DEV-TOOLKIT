@@ -13,6 +13,7 @@
     "Programming Languages"
   ],
   "activationEvents": [
+    "onStartupFinished",
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
     "onLanguage:typescript",
@@ -127,6 +128,11 @@
       {
         "command": "devToolkit.showSessionMetrics",
         "title": "Dev Toolkit: Show Session Metrics",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "devToolkit.toggleSessionTracking",
+        "title": "Dev Toolkit: Toggle Session Tracking",
         "category": "Dev Toolkit"
       }
     ],
