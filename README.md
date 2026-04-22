@@ -13,7 +13,8 @@ Dev Toolkit is a VS Code extension with essential developer utilities.
 - **Code Explainer** - Explain selected code with an AI-enhanced view panel and an editor command for quick context-aware insights
 - **Read Time Estimator** - Show estimated read time for JavaScript, TypeScript, and Markdown files in the status bar
 - **Code Style Mood** - Real-time code style assessment with mood badges (God-level, Clean, Neat, Messy) displayed in the status bar. Analyzes line length, naming conventions, comments, and function complexity with hover tooltips for detailed feedback
-- **Coding Session Tracker** - Track deep-work sessions with a live sidebar dashboard featuring four tabs. 
+- **Coding Session Tracker**
+    - Track deep-work sessions with a live sidebar dashboard featuring four tabs. 
       - **Today** shows active time, session count, best focus streak, flow time, a responsive 12-week activity heatmap, and all-time lifetime stats. 
       - **Goals** sets a custom daily coding goal with an animated progress ring and estimated completion time. 
       - **Awards** tracks 20 achievements across five categories (Milestones, Streaks, Flow State, Productivity, Time of Day) plus four progressive badges (Code Clock, Fire Keeper, Focus Forge, Iron Coder) each with Bronze through Diamond tiers. 
