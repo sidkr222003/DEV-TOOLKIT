@@ -1,7 +1,15 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { SessionRecord } from "./sessionTimer";
+import {
+  SessionRecord,
+  getCurrentSessionRecord,
+  isSessionTrackingActive,
+  onSessionStateChange,
+  startSessionTracking,
+  stopSessionTracking,
+  toggleSessionTracking
+} from "./sessionTimer";
 
 export function registerSessionTracker(context: vscode.ExtensionContext) {
   const provider = new SessionTrackerViewProvider(context);
@@ -15,6 +23,7 @@ export function registerSessionTracker(context: vscode.ExtensionContext) {
 class SessionTrackerViewProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
   private readonly context: vscode.ExtensionContext;
+  private liveStateSubscription?: vscode.Disposable;
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -33,18 +42,50 @@ class SessionTrackerViewProvider implements vscode.WebviewViewProvider {
         case "requestData":
           this.sendHistory();
           break;
+        case "toggleTracking":
+          toggleSessionTracking();
+          this.sendHistory();
+          break;
+        case "startTracking":
+          startSessionTracking();
+          this.sendHistory();
+          break;
+        case "stopTracking":
+          stopSessionTracking();
+          this.sendHistory();
+          break;
         case "clearHistory":
           await this.clearHistory();
           break;
       }
     });
 
+    this.liveStateSubscription?.dispose();
+    this.liveStateSubscription = onSessionStateChange(() => this.sendHistory());
+    this.view.onDidDispose(() => this.liveStateSubscription?.dispose());
+
     this.sendHistory();
   }
 
   private sendHistory() {
-    const history = this.context.globalState.get<SessionRecord[]>("devToolkit.sessionHistory", []);
-    this.view?.webview.postMessage({ type: "history", history });
+    const persistedHistory = this.context.globalState.get<SessionRecord[]>("devToolkit.sessionHistory", []);
+    const history = [...persistedHistory];
+    const liveRecord = getCurrentSessionRecord();
+
+    if (liveRecord) {
+      const existingIndex = history.findIndex((entry) => entry.id === liveRecord.id);
+      if (existingIndex >= 0) {
+        history[existingIndex] = liveRecord;
+      } else {
+        history.push(liveRecord);
+      }
+    }
+
+    this.view?.webview.postMessage({
+      type: "history",
+      history,
+      isTracking: isSessionTrackingActive()
+    });
   }
 
   private async clearHistory() {

@@ -10,14 +10,11 @@
 <body>
     <div class="container">
         <header>
-            <div class="selector-container">
-                <select id="featureSelector">
-                    <option value="tracker" selected>Session Tracker</option>
-                    <option value="explainer">Code Explainer</option>
-                </select>
-                <i class="codicon codicon-chevron-down"></i>
-            </div>
+            <div class="title">Session Tracker</div>
             <div class="actions">
+                <button id="toggleTrackingBtn" title="Pause Session">
+                    <i class="codicon codicon-debug-pause"></i>
+                </button>
                 <button id="refreshBtn" title="Refresh Data">
                     <i class="codicon codicon-refresh"></i>
                 </button>
