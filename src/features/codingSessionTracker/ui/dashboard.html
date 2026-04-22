@@ -5,76 +5,348 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="${codiconsUri}">
     <link rel="stylesheet" href="${styleUri}">
-    <title>Session Tracker Dashboard</title>
+    <title>Session Tracker</title>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="title">Session Tracker</div>
-            <div class="actions">
-                <button id="toggleTrackingBtn" title="Pause Session">
+    <div class="root">
+
+        <!-- ── Header ──────────────────────────────────────────── -->
+        <header class="app-header">
+            <span class="app-title">
+                <i class="codicon codicon-pulse"></i>
+                Session Tracker
+            </span>
+            <div class="header-actions">
+                <button id="toggleTrackingBtn" class="icon-btn" title="Pause tracking">
                     <i class="codicon codicon-debug-pause"></i>
                 </button>
-                <button id="refreshBtn" title="Refresh Data">
-                    <i class="codicon codicon-refresh"></i>
+                <button id="exportBtn" class="icon-btn" title="Export data">
+                    <i class="codicon codicon-export"></i>
+                </button>
+                <button id="clearHistoryBtn" class="icon-btn danger" title="Clear history">
+                    <i class="codicon codicon-trash"></i>
                 </button>
             </div>
         </header>
 
-        <main id="trackerContent">
-            <div class="stats-card">
-                <div class="stat-header">
-                    <i class="codicon codicon-trophy"></i>
-                    <span>All-Time Best</span>
+        <!-- ── Live Status Strip ───────────────────────────────── -->
+        <div id="liveStrip" class="live-strip hidden">
+            <div class="live-left">
+                <span class="live-dot"></span>
+                <span class="live-label">LIVE</span>
+                <span id="liveTime" class="live-time">0m 0s</span>
+            </div>
+            <div class="live-right">
+                <span class="live-meta" id="liveState">Active</span>
+                <div class="eff-track">
+                    <div id="effFill" class="eff-fill" style="width:100%"></div>
                 </div>
-                <div class="best-metric">
-                    <div class="metric-label">Focus Streak</div>
-                    <div id="bestStreak" class="metric-value">0m 0s</div>
+                <span id="effPct" class="eff-pct">100%</span>
+            </div>
+        </div>
+
+        <!-- ── Tab Bar ─────────────────────────────────────────── -->
+        <nav class="tab-bar">
+            <button class="tab active" data-tab="today">
+                <i class="codicon codicon-calendar"></i>
+                <span>Today</span>
+            </button>
+            <button class="tab" data-tab="goals">
+                <i class="codicon codicon-target"></i>
+                <span>Goals</span>
+            </button>
+            <button class="tab" data-tab="achievements">
+                <i class="codicon codicon-star"></i>
+                <span>Awards</span>
+            </button>
+            <button class="tab" data-tab="history">
+                <i class="codicon codicon-graph"></i>
+                <span>History</span>
+            </button>
+        </nav>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- TAB: TODAY                                             -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <section class="tab-panel active" id="tab-today">
+
+            <!-- Empty state -->
+            <div id="emptyToday" class="empty-state hidden">
+                <i class="codicon codicon-history empty-icon"></i>
+                <p class="empty-title">No data yet</p>
+                <p class="empty-hint">Start coding — your stats will appear here.</p>
+            </div>
+
+            <div id="todayContent">
+                <!-- Stat row -->
+                <div class="stat-grid">
+                    <div class="stat-tile">
+                        <i class="codicon codicon-clock stat-icon"></i>
+                        <span class="stat-val" id="todayActive">0m</span>
+                        <span class="stat-lbl">Active today</span>
+                    </div>
+                    <div class="stat-tile">
+                        <i class="codicon codicon-flame stat-icon accent-orange"></i>
+                        <span class="stat-val" id="todayStreak">0m</span>
+                        <span class="stat-lbl">Best streak</span>
+                    </div>
+                    <div class="stat-tile">
+                        <i class="codicon codicon-layers stat-icon"></i>
+                        <span class="stat-val" id="todaySessions">0</span>
+                        <span class="stat-lbl">Sessions</span>
+                    </div>
+                    <div class="stat-tile">
+                        <i class="codicon codicon-zap stat-icon accent-blue"></i>
+                        <span class="stat-val" id="todayFlow">0m</span>
+                        <span class="stat-lbl">Flow time</span>
+                    </div>
                 </div>
-                <div class="best-metric">
-                    <div class="metric-label">Max Active Time</div>
-                    <div id="maxActiveTime" class="metric-value">0m 0s</div>
+
+                <!-- Heatmap -->
+                <div class="section-block">
+                    <div class="section-header">
+                        <i class="codicon codicon-graph-line"></i>
+                        <span>Last 12 weeks</span>
+                    </div>
+                    <div id="heatmap" class="heatmap">
+                        <!-- Injected by JS -->
+                    </div>
+                    <div class="heatmap-legend">
+                        <span class="legend-label">Less</span>
+                        <div class="legend-cells">
+                            <div class="hcell" data-level="0"></div>
+                            <div class="hcell" data-level="1"></div>
+                            <div class="hcell" data-level="2"></div>
+                            <div class="hcell" data-level="3"></div>
+                            <div class="hcell" data-level="4"></div>
+                        </div>
+                        <span class="legend-label">More</span>
+                    </div>
+                </div>
+
+                <!-- All-time bests -->
+                <div class="section-block">
+                    <div class="section-header">
+                        <i class="codicon codicon-trophy"></i>
+                        <span>All-Time</span>
+                    </div>
+                    <div class="kv-list">
+                        <div class="kv-row">
+                            <span class="kv-label">Total sessions</span>
+                            <span class="kv-value" id="allSessions">0</span>
+                        </div>
+                        <div class="kv-row">
+                            <span class="kv-label">Lifetime active</span>
+                            <span class="kv-value" id="allActive">0h</span>
+                        </div>
+                        <div class="kv-row">
+                            <span class="kv-label">Best streak</span>
+                            <span class="kv-value" id="allStreak">0m</span>
+                        </div>
+                        <div class="kv-row">
+                            <span class="kv-label">Longest session</span>
+                            <span class="kv-value" id="allLongest">0m</span>
+                        </div>
+                        <div class="kv-row">
+                            <span class="kv-label">Coding since</span>
+                            <span class="kv-value" id="allSince">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- TAB: GOALS                                             -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <section class="tab-panel" id="tab-goals">
+            <div class="section-block">
+                <div class="section-header">
+                    <i class="codicon codicon-target"></i>
+                    <span>Daily Goal</span>
+                </div>
+                <div class="goal-ring-wrap">
+                    <svg class="goal-ring" viewBox="0 0 100 100">
+                        <circle class="ring-bg" cx="50" cy="50" r="42"/>
+                        <circle id="ringFill" class="ring-fill" cx="50" cy="50" r="42"
+                            stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+                    </svg>
+                    <div class="ring-center">
+                        <span id="goalPct" class="ring-pct">0%</span>
+                        <span class="ring-sub">of goal</span>
+                    </div>
+                </div>
+                <div class="kv-list" style="margin-top:8px">
+                    <div class="kv-row">
+                        <span class="kv-label">Goal</span>
+                        <span class="kv-value" id="goalTarget">2h 0m</span>
+                    </div>
+                    <div class="kv-row">
+                        <span class="kv-label">Coded today</span>
+                        <span class="kv-value" id="goalCoded">0m</span>
+                    </div>
+                    <div class="kv-row">
+                        <span class="kv-label">Remaining</span>
+                        <span class="kv-value" id="goalRemaining">2h 0m</span>
+                    </div>
+                    <div class="kv-row">
+                        <span class="kv-label">Est. completion</span>
+                        <span class="kv-value" id="goalEta">—</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="chart-container">
-                <div class="chart-header">
+            <div class="section-block">
+                <div class="section-header">
+                    <i class="codicon codicon-settings-gear"></i>
+                    <span>Set Goal</span>
+                </div>
+                <div class="goal-input-row">
+                    <input type="number" id="goalInput" class="vscode-input" min="15" max="720" value="120" />
+                    <span class="goal-input-unit">minutes</span>
+                    <button id="goalSaveBtn" class="primary-btn">
+                        <i class="codicon codicon-check"></i> Save
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- TAB: ACHIEVEMENTS & BADGES                            -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <section class="tab-panel" id="tab-achievements">
+
+            <!-- Badges -->
+            <div class="section-block">
+                <div class="section-header">
+                    <i class="codicon codicon-verified"></i>
+                    <span>Badges</span>
+                </div>
+                <div id="badgeGrid" class="badge-grid">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="section-block">
+                <div class="section-header">
+                    <i class="codicon codicon-star-full"></i>
+                    <span>Achievements</span>
+                    <span id="achCount" class="pill">0 / 20</span>
+                </div>
+
+                <!-- Category: Milestones -->
+                <div class="ach-category">
+                    <span class="ach-cat-label">
+                        <i class="codicon codicon-milestone"></i> Milestones
+                    </span>
+                    <div id="achMilestones" class="ach-list"></div>
+                </div>
+
+                <!-- Category: Streaks -->
+                <div class="ach-category">
+                    <span class="ach-cat-label">
+                        <i class="codicon codicon-flame"></i> Streaks
+                    </span>
+                    <div id="achStreaks" class="ach-list"></div>
+                </div>
+
+                <!-- Category: Flow State -->
+                <div class="ach-category">
+                    <span class="ach-cat-label">
+                        <i class="codicon codicon-zap"></i> Flow State
+                    </span>
+                    <div id="achFlow" class="ach-list"></div>
+                </div>
+
+                <!-- Category: Productivity -->
+                <div class="ach-category">
+                    <span class="ach-cat-label">
+                        <i class="codicon codicon-dashboard"></i> Productivity
+                    </span>
+                    <div id="achProductivity" class="ach-list"></div>
+                </div>
+
+                <!-- Category: Time of Day -->
+                <div class="ach-category">
+                    <span class="ach-cat-label">
+                        <i class="codicon codicon-clock"></i> Time of Day
+                    </span>
+                    <div id="achTimeOfDay" class="ach-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- TAB: HISTORY                                           -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <section class="tab-panel" id="tab-history">
+
+            <div class="section-block">
+                <div class="section-header">
                     <i class="codicon codicon-graph"></i>
                     <span>Session History</span>
+                    <span class="section-hint">last 14</span>
                 </div>
                 <div id="barChart" class="bar-chart">
-                    <!-- Bars will be injected here -->
+                    <!-- Injected by JS -->
                 </div>
             </div>
 
-            <div id="selectionDetail" class="selection-detail hidden">
+            <div id="selectionDetail" class="detail-card hidden">
                 <div class="detail-header">
-                    <i class="codicon codicon-calendar"></i>
-                    <span id="detailDate">Session Detail</span>
+                    <i class="codicon codicon-info"></i>
+                    <span id="detailDate">—</span>
                 </div>
                 <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="label">Duration</span>
-                        <span id="detailDuration" class="value">0m 0s</span>
+                    <div class="detail-cell">
+                        <span class="dc-label">Duration</span>
+                        <span class="dc-value" id="detailDuration">—</span>
                     </div>
-                    <div class="detail-item">
-                        <span class="label">Active</span>
-                        <span id="detailActive" class="value">0m 0s</span>
+                    <div class="detail-cell">
+                        <span class="dc-label">Active</span>
+                        <span class="dc-value" id="detailActive">—</span>
                     </div>
-                    <div class="detail-item">
-                        <span class="label">Peak Streak</span>
-                        <span id="detailStreak" class="value">0m 0s</span>
+                    <div class="detail-cell">
+                        <span class="dc-label">Peak streak</span>
+                        <span class="dc-value" id="detailStreak">—</span>
+                    </div>
+                    <div class="detail-cell">
+                        <span class="dc-label">Efficiency</span>
+                        <span class="dc-value" id="detailEff">—</span>
                     </div>
                 </div>
             </div>
-        </main>
 
-        <footer id="emptyState" class="hidden">
-            <div class="empty-icon"><i class="codicon codicon-history"></i></div>
-            <p>No session data recorded yet.</p>
-            <p class="hint">Your productivity will appear here as you code.</p>
-        </footer>
+            <div class="section-block">
+                <div class="section-header">
+                    <i class="codicon codicon-export"></i>
+                    <span>Export</span>
+                </div>
+                <div class="export-row">
+                    <button class="secondary-btn" id="exportJsonBtn">
+                        <i class="codicon codicon-json"></i> JSON
+                    </button>
+                    <button class="secondary-btn" id="exportCsvBtn">
+                        <i class="codicon codicon-table"></i> CSV
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- /.root -->
+
+    <!-- ── Achievement Toast ───────────────────────────────────── -->
+    <div id="achToast" class="ach-toast hidden">
+        <div class="toast-inner">
+            <i class="codicon codicon-star-full toast-icon"></i>
+            <div class="toast-body">
+                <div class="toast-title">Achievement Unlocked</div>
+                <div id="toastName" class="toast-name">—</div>
+            </div>
+        </div>
     </div>
+
     <script src="${scriptUri}"></script>
 </body>
 </html>

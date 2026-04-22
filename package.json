@@ -1,8 +1,8 @@
 {
   "name": "dev-toolkit",
   "displayName": "Dev Toolkit",
-  "description": "Developer utilities: file size display, console log removal, AI-enhanced code explanation, and reference tracking",
-  "version": "1.1.0",
+  "description": "Developer utilities: file size display, console log removal, AI-enhanced code explanation, reference tracking, and session productivity tracking",
+  "version": "1.2.0",
   "publisher": "sidkr222003",
   "engines": {
     "vscode": "^1.93.0"
@@ -36,26 +36,118 @@
     "@types/vscode": "^1.93.0"
   },
   "contributes": {
+
     "configuration": {
       "title": "Dev Toolkit",
       "properties": {
+
         "devToolkit.enableCopilotFallback": {
           "type": "boolean",
           "default": true,
-          "description": "Use GitHub Copilot (mini model) to enhance code explanations with AI. 0x cost for extensions. Disable to use static analysis only."
+          "description": "Use GitHub Copilot (mini model) to enhance code explanations with AI. Disable to use static analysis only."
         },
+
         "devToolkit.sessionTracker.idleDetection": {
           "type": "boolean",
           "default": true,
-          "description": "Enable idle detection for the coding session tracker. If enabled, the timer will only increment when you are actively coding (within 60 seconds of last activity)."
+          "description": "Pause the session timer when no keyboard or editor activity is detected within the idle timeout window."
+        },
+        "devToolkit.sessionTracker.idleThresholdMinutes": {
+          "type": "number",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Minutes of inactivity before the session is considered idle. Range: 1–10 (default: 2)."
         },
         "devToolkit.sessionTracker.breakReminderInterval": {
           "type": "number",
           "default": 45,
-          "description": "The number of minutes of continuous active coding after which to show a break reminder notification."
+          "minimum": 5,
+          "maximum": 240,
+          "description": "Minutes of continuous active coding after which a break reminder notification is shown."
+        },
+        "devToolkit.sessionTracker.flowStateThresholdMinutes": {
+          "type": "number",
+          "default": 25,
+          "minimum": 5,
+          "maximum": 120,
+          "description": "Minimum uninterrupted active minutes required to qualify a session as a flow state. Default: 25."
+        },
+        "devToolkit.sessionTracker.dailyGoalMinutes": {
+          "type": "number",
+          "default": 120,
+          "minimum": 15,
+          "maximum": 720,
+          "description": "Daily coding goal in minutes. Shown as a progress ring in the Goals tab. Default: 120 (2 hours)."
+        },
+        "devToolkit.sessionTracker.statusBarFormat": {
+          "type": "string",
+          "default": "timeAndStreak",
+          "enum": [
+            "timeOnly",
+            "timeAndStreak",
+            "timeAndLanguage",
+            "iconOnly"
+          ],
+          "enumDescriptions": [
+            "Show active time only: 1h 42m",
+            "Show time and daily streak: 1h 42m  7d",
+            "Show time and current language: 1h 42m  TypeScript",
+            "Show a single icon with no text"
+          ],
+          "description": "Controls what the Session Tracker status bar item displays."
+        },
+        "devToolkit.sessionTracker.notifications": {
+          "type": "object",
+          "default": {
+            "achievementToasts": true,
+            "dailySummary": true,
+            "goalReminders": true,
+            "breakReminders": true
+          },
+          "properties": {
+            "achievementToasts": {
+              "type": "boolean",
+              "description": "Show a notification when a new achievement is unlocked."
+            },
+            "dailySummary": {
+              "type": "boolean",
+              "description": "Show a summary card on first open each day summarising yesterday's session."
+            },
+            "goalReminders": {
+              "type": "boolean",
+              "description": "Notify when the daily coding goal is reached."
+            },
+            "breakReminders": {
+              "type": "boolean",
+              "description": "Show break reminders after sustained focus periods."
+            }
+          },
+          "description": "Fine-grained control over which Session Tracker notifications are shown."
+        },
+        "devToolkit.sessionTracker.workHoursStart": {
+          "type": "number",
+          "default": 9,
+          "minimum": 0,
+          "maximum": 23,
+          "description": "Start of your working hours window (24-hour format). Used for the 9-to-5er achievement."
+        },
+        "devToolkit.sessionTracker.workHoursEnd": {
+          "type": "number",
+          "default": 17,
+          "minimum": 1,
+          "maximum": 24,
+          "description": "End of your working hours window (24-hour format). Used for the 9-to-5er achievement."
+        },
+        "devToolkit.sessionTracker.excludedFileTypes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "File extensions to exclude from active-time tracking. Example: [\".md\", \".json\", \".lock\"]"
         }
       }
     },
+
     "viewsContainers": {
       "activitybar": [
         {
@@ -65,6 +157,7 @@
         }
       ]
     },
+
     "views": {
       "devToolkit": [
         {
@@ -77,65 +170,128 @@
           "id": "devToolkit.sessionTracker",
           "type": "webview",
           "name": "Session Tracker",
-          "icon": "$(graph)"
+          "icon": "$(pulse)"
         }
       ]
     },
+
     "commands": [
+
       {
         "command": "devToolkit.showFileSize",
-        "title": "Dev Toolkit: Show File Size",
+        "title": "Show File Size",
+        "category": "Dev Toolkit",
         "icon": "$(file)"
       },
       {
         "command": "devToolkit.removeConsoleLogs",
-        "title": "Dev Toolkit: Remove Console Logs",
+        "title": "Remove Console Logs",
+        "category": "Dev Toolkit",
         "icon": "$(trash)"
       },
       {
         "command": "devToolkit.removeUnusedImports",
-        "title": "Dev Toolkit: Remove Unused Imports",
+        "title": "Remove Unused Imports",
+        "category": "Dev Toolkit",
         "icon": "$(symbol-namespace)"
       },
       {
         "command": "devToolkit.projectCleanup",
-        "title": "Dev Toolkit: One-Click Project Cleanup",
+        "title": "One-Click Project Cleanup",
+        "category": "Dev Toolkit",
         "icon": "$(clear-all)"
       },
       {
         "command": "devToolkit.explainSelectedCode",
-        "title": "Dev Toolkit: Explain Selected Code",
+        "title": "Explain Selected Code",
+        "category": "Dev Toolkit",
         "icon": "$(book)"
       },
       {
         "command": "devToolkit.showFunctionReferences",
-        "title": "Dev Toolkit: Show Function References",
-        "icon": "$(references)",
-        "category": "Dev Toolkit"
+        "title": "Show Function References",
+        "category": "Dev Toolkit",
+        "icon": "$(references)"
       },
       {
         "command": "devToolkit.showReadTime",
-        "title": "Dev Toolkit: Show Read Time",
-        "icon": "$(clock)",
-        "category": "Dev Toolkit"
+        "title": "Show Read Time",
+        "category": "Dev Toolkit",
+        "icon": "$(clock)"
       },
       {
         "command": "devToolkit.refreshReferences",
-        "title": "Dev Toolkit: Refresh Reference Data",
-        "icon": "$(refresh)",
-        "category": "Dev Toolkit"
+        "title": "Refresh Reference Data",
+        "category": "Dev Toolkit",
+        "icon": "$(refresh)"
       },
+
       {
         "command": "devToolkit.showSessionMetrics",
-        "title": "Dev Toolkit: Show Session Metrics",
-        "category": "Dev Toolkit"
+        "title": "Show Session Metrics",
+        "category": "Session Tracker"
       },
       {
         "command": "devToolkit.toggleSessionTracking",
-        "title": "Dev Toolkit: Toggle Session Tracking",
-        "category": "Dev Toolkit"
+        "title": "Toggle Session Tracking",
+        "category": "Session Tracker"
+      },
+      {
+        "command": "devToolkit.startSession",
+        "title": "Start Session",
+        "category": "Session Tracker",
+        "icon": "$(play)"
+      },
+      {
+        "command": "devToolkit.endSession",
+        "title": "End Session",
+        "category": "Session Tracker",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "devToolkit.openSessionDashboard",
+        "title": "Open Dashboard",
+        "category": "Session Tracker",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "devToolkit.viewAchievements",
+        "title": "View Achievements",
+        "category": "Session Tracker",
+        "icon": "$(star)"
+      },
+      {
+        "command": "devToolkit.viewBadges",
+        "title": "View Badges",
+        "category": "Session Tracker",
+        "icon": "$(verified)"
+      },
+      {
+        "command": "devToolkit.viewHistory",
+        "title": "View History",
+        "category": "Session Tracker",
+        "icon": "$(history)"
+      },
+      {
+        "command": "devToolkit.exportSessionData",
+        "title": "Export Data",
+        "category": "Session Tracker",
+        "icon": "$(export)"
+      },
+      {
+        "command": "devToolkit.resetToday",
+        "title": "Reset Today",
+        "category": "Session Tracker",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "devToolkit.setDailyGoal",
+        "title": "Set Daily Goal",
+        "category": "Session Tracker",
+        "icon": "$(target)"
       }
     ],
+
     "menus": {
       "commandPalette": [
         {
@@ -153,8 +309,18 @@
         {
           "command": "devToolkit.projectCleanup",
           "when": "editorTextFocus && !editorReadonly && (editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact')"
-        }
+        },
+        { "command": "devToolkit.startSession" },
+        { "command": "devToolkit.endSession" },
+        { "command": "devToolkit.openSessionDashboard" },
+        { "command": "devToolkit.viewAchievements" },
+        { "command": "devToolkit.viewBadges" },
+        { "command": "devToolkit.viewHistory" },
+        { "command": "devToolkit.exportSessionData" },
+        { "command": "devToolkit.resetToday" },
+        { "command": "devToolkit.setDailyGoal" }
       ],
+
       "explorer/context": [
         {
           "command": "devToolkit.showFileSize",
@@ -165,6 +331,7 @@
           "when": "!explorerResourceIsFolder"
         }
       ],
+
       "editor/context": [
         {
           "command": "devToolkit.showFileSize",
@@ -193,6 +360,7 @@
           "group": "references"
         }
       ],
+
       "editor/title": [
         {
           "command": "devToolkit.refreshReferences",
@@ -201,6 +369,7 @@
         }
       ]
     },
+
     "keybindings": [
       {
         "command": "devToolkit.explainSelectedCode",
