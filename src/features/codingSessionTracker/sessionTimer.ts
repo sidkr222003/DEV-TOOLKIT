@@ -211,7 +211,7 @@ export function registerSessionTimer(context: vscode.ExtensionContext) {
     // Tooltip
     const efficiency = totalTime > 0 ? Math.round((activeTime / totalTime) * 100) : 100;
     const goalPct = Math.min(100, Math.round((activeTime / dailyGoalSec) * 100));
-    const md = new vscode.MarkdownString();
+    const md = new vscode.MarkdownString(undefined, true);
     md.appendMarkdown(`### $(pulse) Focus Dashboard\n\n`);
     md.appendMarkdown(`---\n\n`);
     md.appendMarkdown(`$(clock) **Session Start:** ${sessionStartTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}\n\n`);
