@@ -1,8 +1,8 @@
 {
   "name": "dev-toolkit",
   "displayName": "Dev Toolkit",
-  "description": "Developer utilities: file size display, console log removal, AI-enhanced code explanation, reference tracking, and session productivity tracking",
-  "version": "1.2.0",
+  "description": "Developer utilities: file size display, console log removal, AI-enhanced code explanation, reference tracking, session productivity tracking, and clipboard security scanning",
+  "version": "1.3.0",
   "publisher": "sidkr222003",
   "engines": {
     "vscode": "^1.93.0"
@@ -144,6 +144,59 @@
           "items": { "type": "string" },
           "default": [],
           "description": "File extensions to exclude from active-time tracking. Example: [\".md\", \".json\", \".lock\"]"
+        },
+
+        "pasteShield.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable PasteShield clipboard scanning.",
+          "scope": "window"
+        },
+        "pasteShield.ignoredPatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "Pattern names to skip during scanning. Example: `[\"eval() Call\", \"innerHTML Assignment\"]`. Run **PasteShield: Show Last Scan Report** to see all pattern names.",
+          "scope": "resource"
+        },
+        "pasteShield.showInlineDecorations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a temporary inline gutter decoration at the insertion point after a warned paste (auto-clears after 10 seconds).",
+          "scope": "window"
+        },
+        "pasteShield.minimumSeverity": {
+          "type": "string",
+          "default": "medium",
+          "enum": ["critical", "high", "medium", "low"],
+          "enumDescriptions": [
+            "Only warn for critical issues (API keys, private keys, database credentials).",
+            "Warn for high and critical issues (adds JWTs, hardcoded passwords, prototype pollution).",
+            "Warn for medium, high, and critical issues — recommended (adds eval, innerHTML, document.write).",
+            "Warn for all detected patterns including low-severity ones (adds setTimeout/setInterval strings)."
+          ],
+          "description": "Minimum severity level that triggers a PasteShield warning.",
+          "scope": "window"
+        },
+        "pasteShield.ignoredLanguages": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "Language IDs where PasteShield paste scanning is disabled. Example: `[\"markdown\", \"plaintext\"]`. Note: `.env` and `.env.local` files are always excluded from paste interception regardless of this setting.",
+          "scope": "resource"
+        },
+        "pasteShield.showCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline CodeLens warnings above detected secrets and unsafe patterns in open files. Each lens includes severity, a details link, and a one-click ignore action.",
+          "scope": "window"
+        },
+        "pasteShield.codeLensExcludedFiles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "Additional file basenames to exclude from CodeLens scanning (e.g. `[\".env.production\", \".env.staging\"]`). Note: paste interception is always skipped for `.env` and `.env.local` regardless of this list.",
+          "scope": "resource"
         }
       }
     },
@@ -289,6 +342,43 @@
         "title": "Set Daily Goal",
         "category": "Session Tracker",
         "icon": "$(target)"
+      },
+
+      {
+        "command": "pasteShield.paste",
+        "title": "Paste (with security scan)",
+        "category": "PasteShield",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "pasteShield.toggle",
+        "title": "Toggle On/Off",
+        "category": "PasteShield",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "pasteShield.showLastReport",
+        "title": "Show Last Scan Report",
+        "category": "PasteShield",
+        "icon": "$(output)"
+      },
+      {
+        "command": "pasteShield.codeLensDetails",
+        "title": "Show Detection Details",
+        "category": "PasteShield",
+        "icon": "$(info)"
+      },
+      {
+        "command": "pasteShield.codeLensIgnore",
+        "title": "Ignore This Pattern",
+        "category": "PasteShield",
+        "icon": "$(mute)"
+      },
+      {
+        "command": "pasteShield.codeLensFix",
+        "title": "Open Ignored Patterns Settings",
+        "category": "PasteShield",
+        "icon": "$(settings-gear)"
       }
     ],
 
@@ -318,7 +408,25 @@
         { "command": "devToolkit.viewHistory" },
         { "command": "devToolkit.exportSessionData" },
         { "command": "devToolkit.resetToday" },
-        { "command": "devToolkit.setDailyGoal" }
+        { "command": "devToolkit.setDailyGoal" },
+        {
+          "command": "pasteShield.paste",
+          "when": "false"
+        },
+        { "command": "pasteShield.toggle" },
+        { "command": "pasteShield.showLastReport" },
+        {
+          "command": "pasteShield.codeLensDetails",
+          "when": "false"
+        },
+        {
+          "command": "pasteShield.codeLensIgnore",
+          "when": "false"
+        },
+        {
+          "command": "pasteShield.codeLensFix",
+          "when": "false"
+        }
       ],
 
       "explorer/context": [
@@ -358,6 +466,16 @@
           "command": "devToolkit.showFunctionReferences",
           "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'",
           "group": "references"
+        },
+        {
+          "command": "pasteShield.toggle",
+          "when": "editorTextFocus",
+          "group": "pasteShield@1"
+        },
+        {
+          "command": "pasteShield.showLastReport",
+          "when": "editorTextFocus",
+          "group": "pasteShield@2"
         }
       ],
 
@@ -382,6 +500,17 @@
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r",
         "when": "editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact'"
+      },
+      {
+        "command": "pasteShield.paste",
+        "key": "ctrl+v",
+        "mac": "cmd+v",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pasteShield.paste",
+        "key": "shift+insert",
+        "when": "editorTextFocus"
       }
     ]
   }

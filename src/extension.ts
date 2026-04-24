@@ -8,7 +8,7 @@ import { registerReadTime } from "./features/readTime";
 import { registerCodeExplainer } from "./features/codeExplainer";
 import { registerFunctionReferences } from "./features/functionReferences";
 import { registerCodeStyleMood } from "./features/codeStyleMood";
-
+import { registerPasteShield } from './features/pasteShield/pasteShield';
 import { registerSessionTimer } from "./features/codingSessionTracker/sessionTimer";
 import { registerSessionTracker } from "./features/codingSessionTracker/sessionTrackerView";
 
@@ -24,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerCodeStyleMood(context);
   registerSessionTimer(context);
   registerSessionTracker(context);
+  registerPasteShield(context);
 }
 
 export function deactivate(): void {}
