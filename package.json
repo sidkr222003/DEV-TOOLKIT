@@ -64,17 +64,14 @@
     "@types/vscode": "^1.93.0"
   },
   "contributes": {
-
     "configuration": {
       "title": "Dev Toolkit",
       "properties": {
-
         "devToolkit.enableCopilotFallback": {
           "type": "boolean",
           "default": true,
           "description": "Use GitHub Copilot (mini model) to enhance code explanations with AI. Disable to use static analysis only."
         },
-
         "devToolkit.sessionTracker.idleDetection": {
           "type": "boolean",
           "default": true,
@@ -85,7 +82,7 @@
           "default": 2,
           "minimum": 1,
           "maximum": 10,
-          "description": "Minutes of inactivity before the session is considered idle. Range: 1–10 (default: 2)."
+          "description": "Minutes of inactivity before the session is considered idle. Range: 1\u201310 (default: 2)."
         },
         "devToolkit.sessionTracker.breakReminderInterval": {
           "type": "number",
@@ -169,11 +166,12 @@
         },
         "devToolkit.sessionTracker.excludedFileTypes": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "File extensions to exclude from active-time tracking. Example: [\".md\", \".json\", \".lock\"]"
         },
-
         "pasteShield.enabled": {
           "type": "boolean",
           "default": true,
@@ -188,7 +186,9 @@
         },
         "pasteShield.ignoredPatterns": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "markdownDescription": "Pattern names to skip during scanning. Example: `[\"eval() Call\", \"innerHTML Assignment\"]`. Run **PasteShield: Show Last Scan Report** to see all pattern names.",
           "scope": "resource"
@@ -202,11 +202,16 @@
         "pasteShield.minimumSeverity": {
           "type": "string",
           "default": "medium",
-          "enum": ["critical", "high", "medium", "low"],
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ],
           "enumDescriptions": [
             "Only warn for critical issues (API keys, private keys, database credentials).",
             "Warn for high and critical issues (adds JWTs, hardcoded passwords, prototype pollution).",
-            "Warn for medium, high, and critical issues — recommended (adds eval, innerHTML, document.write).",
+            "Warn for medium, high, and critical issues \u2014 recommended (adds eval, innerHTML, document.write).",
             "Warn for all detected patterns including low-severity ones (adds setTimeout/setInterval strings)."
           ],
           "description": "Minimum severity level that triggers a PasteShield warning.",
@@ -214,7 +219,9 @@
         },
         "pasteShield.ignoredLanguages": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "markdownDescription": "Language IDs where PasteShield paste scanning is disabled. Example: `[\"markdown\", \"plaintext\"]`. Note: `.env` and `.env.local` files are always excluded from paste interception regardless of this setting.",
           "scope": "resource"
@@ -227,7 +234,9 @@
         },
         "pasteShield.codeLensExcludedFiles": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "markdownDescription": "Additional file basenames to exclude from CodeLens scanning (e.g. `[\".env.production\", \".env.staging\"]`). Note: paste interception is always skipped for `.env` and `.env.local` regardless of this list.",
           "scope": "resource"
@@ -289,7 +298,12 @@
               },
               "severity": {
                 "type": "string",
-                "enum": ["critical", "high", "medium", "low"],
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low"
+                ],
                 "description": "Severity level"
               },
               "description": {
@@ -306,7 +320,11 @@
                 "description": "Enable or disable this pattern"
               }
             },
-            "required": ["name", "regex", "severity"]
+            "required": [
+              "name",
+              "regex",
+              "severity"
+            ]
           },
           "default": [],
           "markdownDescription": "Custom user-defined regex patterns with severity levels. Each pattern must have a unique name, valid regex, and severity.",
@@ -315,15 +333,21 @@
         "pasteShield.secretManagerProvider": {
           "type": "string",
           "default": "none",
-          "enum": ["none", "vault", "aws", "azure", "gcp"],
-          "enumDescriptions": [
-            "No secret manager configured — detected secrets are stored in VS Code SecretStorage (OS keychain)",
-            "HashiCorp Vault — credentials are stored securely via VS Code SecretStorage",
-            "AWS Secrets Manager — credentials are stored securely via VS Code SecretStorage",
-            "Azure Key Vault — credentials are stored securely via VS Code SecretStorage",
-            "Google Secret Manager — credentials are stored securely via VS Code SecretStorage"
+          "enum": [
+            "none",
+            "vault",
+            "aws",
+            "azure",
+            "gcp"
           ],
-          "description": "Select the secret management provider. All provider credentials are stored via VS Code SecretStorage (OS-level keychain) — never in settings.json.",
+          "enumDescriptions": [
+            "No secret manager configured \u2014 detected secrets are stored in VS Code SecretStorage (OS keychain)",
+            "HashiCorp Vault \u2014 credentials are stored securely via VS Code SecretStorage",
+            "AWS Secrets Manager \u2014 credentials are stored securely via VS Code SecretStorage",
+            "Azure Key Vault \u2014 credentials are stored securely via VS Code SecretStorage",
+            "Google Secret Manager \u2014 credentials are stored securely via VS Code SecretStorage"
+          ],
+          "description": "Select the secret management provider. All provider credentials are stored via VS Code SecretStorage (OS-level keychain) \u2014 never in settings.json.",
           "scope": "application"
         },
         "pasteShield.vaultUrl": {
@@ -367,26 +391,94 @@
           "items": {
             "type": "object",
             "properties": {
-              "id": { "type": "string" },
-              "email": { "type": "string" },
-              "name": { "type": "string" },
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
               "role": {
                 "type": "string",
-                "enum": ["admin", "developer", "auditor"]
+                "enum": [
+                  "admin",
+                  "developer",
+                  "auditor"
+                ]
               },
               "groups": {
                 "type": "array",
-                "items": { "type": "string" }
+                "items": {
+                  "type": "string"
+                }
               }
             }
           },
           "default": [],
           "description": "Team members configuration for enterprise deployments",
           "scope": "machine"
+        },
+        "commitScorer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable real-time commit message scoring."
+        },
+        "commitScorer.conventionalOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, commit messages that do not follow Conventional Commits format receive a score of 0 for the Format dimension."
+        },
+        "commitScorer.bannedWords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "wip",
+            "changes",
+            "update",
+            "updates",
+            "fix",
+            "fixes",
+            "misc",
+            "stuff",
+            "things"
+          ],
+          "description": "Words that reduce the Clarity score when used as the sole content of a commit subject line."
+        },
+        "commitScorer.greenThreshold": {
+          "type": "number",
+          "default": 80,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum score (inclusive) to be considered a green (good) commit message."
+        },
+        "commitScorer.yellowThreshold": {
+          "type": "number",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum score (inclusive) to be considered a yellow (acceptable) commit message. Scores below this are red."
+        },
+        "commitScorer.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the commit score in the VS Code status bar while typing a commit message."
+        },
+        "commitScorer.showInlineDecoration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline score hint next to the first line when editing a COMMIT_EDITMSG file."
+        },
+        "commitScorer.showQuickFixes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable quick-fix actions that can rewrite the commit message to improve its score."
         }
       }
     },
-
     "viewsContainers": {
       "activitybar": [
         {
@@ -396,7 +488,6 @@
         }
       ]
     },
-
     "views": {
       "devToolkit": [
         {
@@ -421,9 +512,7 @@
         }
       ]
     },
-
     "commands": [
-
       {
         "command": "devToolkit.showFileSize",
         "title": "Show File Size",
@@ -472,7 +561,6 @@
         "category": "Dev Toolkit",
         "icon": "$(refresh)"
       },
-
       {
         "command": "devToolkit.showSessionMetrics",
         "title": "Show Session Metrics",
@@ -537,7 +625,6 @@
         "category": "Session Tracker",
         "icon": "$(target)"
       },
-
       {
         "command": "pasteShield.paste",
         "title": "Paste (with security scan)",
@@ -663,9 +750,34 @@
         "title": "Export Compliance Report",
         "category": "PasteShield",
         "icon": "$(output)"
+      },
+      {
+        "command": "commitScorer.showQuickFix",
+        "title": "Commit Scorer: Show Quick Fixes",
+        "category": "Dev Toolkit",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "commitScorer.toggle",
+        "title": "Commit Scorer: Toggle Enable/Disable",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "commitScorer.showReport",
+        "title": "Commit Scorer: Show Score Report",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "commitScorer.convertToConventional",
+        "title": "Commit Scorer: Convert to Conventional Commits Format",
+        "category": "Dev Toolkit"
+      },
+      {
+        "command": "commitScorer.addScope",
+        "title": "Commit Scorer: Add Scope to Commit Message",
+        "category": "Dev Toolkit"
       }
     ],
-
     "menus": {
       "commandPalette": [
         {
@@ -684,31 +796,73 @@
           "command": "devToolkit.projectCleanup",
           "when": "editorTextFocus && !editorReadonly && (editorLangId == 'javascript' || editorLangId == 'typescript' || editorLangId == 'javascriptreact' || editorLangId == 'typescriptreact')"
         },
-        { "command": "devToolkit.startSession" },
-        { "command": "devToolkit.endSession" },
-        { "command": "devToolkit.openSessionDashboard" },
-        { "command": "devToolkit.viewAchievements" },
-        { "command": "devToolkit.viewBadges" },
-        { "command": "devToolkit.viewHistory" },
-        { "command": "devToolkit.exportSessionData" },
-        { "command": "devToolkit.resetToday" },
-        { "command": "devToolkit.setDailyGoal" },
+        {
+          "command": "devToolkit.startSession"
+        },
+        {
+          "command": "devToolkit.endSession"
+        },
+        {
+          "command": "devToolkit.openSessionDashboard"
+        },
+        {
+          "command": "devToolkit.viewAchievements"
+        },
+        {
+          "command": "devToolkit.viewBadges"
+        },
+        {
+          "command": "devToolkit.viewHistory"
+        },
+        {
+          "command": "devToolkit.exportSessionData"
+        },
+        {
+          "command": "devToolkit.resetToday"
+        },
+        {
+          "command": "devToolkit.setDailyGoal"
+        },
         {
           "command": "pasteShield.paste",
           "when": "false"
         },
-        { "command": "pasteShield.toggle" },
-        { "command": "pasteShield.showLastReport" },
-        { "command": "pasteShield.showHistory" },
-        { "command": "pasteShield.showStatistics" },
-        { "command": "pasteShield.exportAuditLog" },
-        { "command": "pasteShield.showRotationReminders" },
-        { "command": "pasteShield.addToWorkspaceIgnore" },
-        { "command": "pasteShield.manageCustomPatterns" },
-        { "command": "pasteShield.configureSecretManager" },
-        { "command": "pasteShield.listStoredSecrets" },
-        { "command": "pasteShield.showEnterprisePolicy" },
-        { "command": "pasteShield.exportComplianceReport" },
+        {
+          "command": "pasteShield.toggle"
+        },
+        {
+          "command": "pasteShield.showLastReport"
+        },
+        {
+          "command": "pasteShield.showHistory"
+        },
+        {
+          "command": "pasteShield.showStatistics"
+        },
+        {
+          "command": "pasteShield.exportAuditLog"
+        },
+        {
+          "command": "pasteShield.showRotationReminders"
+        },
+        {
+          "command": "pasteShield.addToWorkspaceIgnore"
+        },
+        {
+          "command": "pasteShield.manageCustomPatterns"
+        },
+        {
+          "command": "pasteShield.configureSecretManager"
+        },
+        {
+          "command": "pasteShield.listStoredSecrets"
+        },
+        {
+          "command": "pasteShield.showEnterprisePolicy"
+        },
+        {
+          "command": "pasteShield.exportComplianceReport"
+        },
         {
           "command": "pasteShield.codeLensDetails",
           "when": "false"
@@ -734,7 +888,6 @@
           "when": "false"
         }
       ],
-
       "explorer/context": [
         {
           "command": "devToolkit.showFileSize",
@@ -745,7 +898,6 @@
           "when": "!explorerResourceIsFolder"
         }
       ],
-
       "editor/context": [
         {
           "command": "devToolkit.showFileSize",
@@ -788,7 +940,6 @@
           "group": "pasteShield@2"
         }
       ],
-
       "editor/title": [
         {
           "command": "devToolkit.refreshReferences",
@@ -796,7 +947,6 @@
           "group": "navigation"
         }
       ],
-
       "pasteShield.editorMenu": [
         {
           "command": "pasteShield.paste",
@@ -831,7 +981,6 @@
           "group": "4_advanced@3"
         }
       ],
-
       "view/title": [
         {
           "command": "pasteShield.refreshHistory",
@@ -854,7 +1003,6 @@
           "group": "secondary"
         }
       ],
-
       "view/item/context": [
         {
           "command": "pasteShield.showLastReport",
@@ -863,7 +1011,6 @@
         }
       ]
     },
-
     "submenus": [
       {
         "id": "pasteShield.editorMenu",
@@ -871,7 +1018,6 @@
         "icon": "$(shield)"
       }
     ],
-
     "keybindings": [
       {
         "command": "devToolkit.explainSelectedCode",
@@ -895,9 +1041,14 @@
         "command": "pasteShield.paste",
         "key": "shift+insert",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "commitScorer.showQuickFix",
+        "key": "ctrl+shift+k",
+        "mac": "cmd+shift+k",
+        "when": "scmInputBoxFocus"
       }
     ],
-
     "colors": [
       {
         "id": "pasteShield.criticalForeground",

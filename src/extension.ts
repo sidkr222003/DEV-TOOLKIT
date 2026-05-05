@@ -12,6 +12,7 @@ import { registerPasteShield } from "./features/pasteShield/pasteShield";
 import { registerSessionTimer } from "./features/codingSessionTracker/sessionTimer";
 import { registerSessionTracker } from "./features/codingSessionTracker/sessionTrackerView";
 import { registerPasteShieldCommands } from "./features/pasteShield/PasteshieldCommands";
+import { registerCommitScorer } from "./features/commitScrorer/commitScorer";
 
 export function activate(context: vscode.ExtensionContext) {
   registerFileSize(context);
@@ -29,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
   // PasteShield — core detection + command palette features
   registerPasteShield(context);
   registerPasteShieldCommands(context);
+  registerCommitScorer(context);
 }
 
 export function deactivate(): void {}
